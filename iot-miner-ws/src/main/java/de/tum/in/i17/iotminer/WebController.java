@@ -55,12 +55,18 @@ public class WebController {
 
     @RequestMapping(value = "/usecases", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
     public ResponseEntity getUseCases(
-            @RequestParam(name = "input", required = false) String input,
+            @RequestParam(name = "industry", required = false) String industry,
             HttpServletResponse response)
             throws IllegalAccessException, URISyntaxException, ClassNotFoundException {
 
         List<UseCase> useCaseList = new ArrayList<>();
-        for (UseCase useCase : useCaseRepository.findAll()) {
+        Iterable<UseCase> useCaseIterable;
+        if (industry != null) {
+            useCaseIterable = useCaseRepository.findByIndustries_Name(industry);
+        } else {
+            useCaseIterable = useCaseRepository.findAll();
+        }
+        for (UseCase useCase : useCaseIterable) {
             useCaseList.add(useCase);
         }
 
