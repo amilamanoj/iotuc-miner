@@ -40,47 +40,39 @@ import java.util.HashSet;
             final Industry industryC = new Industry("Information technology", "IT Industry");
             final Industry industryD = new Industry("Energy", "Energy Industry");
             final Industry industryE = new Industry("Construction", "Construction Industry");
+            final Industry industryF = new Industry("Healthcare", "Healthcare Industry");
 
             final UseCase useCaseA = new UseCase("AT&T #IoT Solution Helps Keep Beverage Coolers Stocked and Chilled Around the World", "AT&T");
             final UseCase useCaseB = new UseCase("Making factories more #intelligent", "Microsoft");
             final UseCase useCaseC = new UseCase("Great #UX at the gas station: #IoT enables in-car-payment", "Shell");
+            final UseCase useCaseD = new UseCase("How to solve the water shortage problem using #Predix and how to reduce costs with #IoTSolution", "Predix");
+            final UseCase useCaseE = new UseCase("Adaptive #drone swarms share distributed decision-making brain", "USGov");
+            final UseCase useCaseF = new UseCase("@kwit_case uses an #iot cigarette case to provide data to gamify quitting smoking. ", "Kwit");
 
             useCaseA.setIndustries(new HashSet<Industry>(){{
-                add(industryA); }});
+                add(industryA);add(industryB); }});
             useCaseB.setIndustries(new HashSet<Industry>(){{
                 add(industryB);add(industryC); }});
             useCaseC.setIndustries(new HashSet<Industry>(){{
                 add(industryD);add(industryE); }});
+            useCaseD.setIndustries(new HashSet<Industry>(){{
+                add(industryB);add(industryD);add(industryE); }});
+            useCaseE.setIndustries(new HashSet<Industry>(){{
+                add(industryA);add(industryE); }});
+            useCaseF.setIndustries(new HashSet<Industry>(){{
+                add(industryD);add(industryF); }});
 
             useCaseRepository.save(useCaseA);
             useCaseRepository.save(useCaseB);
             useCaseRepository.save(useCaseC);
+            useCaseRepository.save(useCaseD);
+            useCaseRepository.save(useCaseE);
+            useCaseRepository.save(useCaseF);
 
 
-            // fetch all books
             for(UseCase useCase : useCaseRepository.findAll()) {
                 logger.info(useCase.toString());
             }
 
-//            // save a couple of publishers
-//            final UseCase bookA = new UseCase("UseCase A");
-//            final UseCase bookB = new UseCase("UseCase B");
-//
-//            industryRepository.save(new HashSet<Industry>() {{
-//                add(new Industry("Industry A", new HashSet<UseCase>() {{
-//                    add(bookA);
-//                    add(bookB);
-//                }}));
-//
-//                add(new Industry("Industry B", new HashSet<UseCase>() {{
-//                    add(bookA);
-//                    add(bookB);
-//                }}));
-//            }});
-//
-//            // fetch all publishers
-//            for(Industry publisher : industryRepository.findAll()) {
-//                logger.info(publisher.toString());
-//            }
         }
 }
