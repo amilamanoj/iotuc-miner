@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -75,6 +76,16 @@ public class WebController {
         return ResponseEntity.status(HttpStatus.OK).body(useCaseList);
 
     }
+
+    @RequestMapping(value = "/usecases/{id}", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
+    public ResponseEntity getUseCases(
+            @PathVariable("id") long id)
+            throws IllegalAccessException, URISyntaxException, ClassNotFoundException {
+
+        UseCase useCase = useCaseRepository.findOne(id);
+        return ResponseEntity.status(HttpStatus.OK).body(useCase);
+    }
+
     @RequestMapping(value = "/industries", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
     public ResponseEntity getIndustries(
             @RequestParam(name = "input", required = false) String input,
