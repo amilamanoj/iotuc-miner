@@ -29,6 +29,11 @@
             <artifactId>jackson-annotations</artifactId>
             <version>RELEASE</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.opennlp</groupId>
+            <artifactId>opennlp</artifactId>
+            <version>1.8.1</version>
+        </dependency>
     </dependencies>
 
     <build>
