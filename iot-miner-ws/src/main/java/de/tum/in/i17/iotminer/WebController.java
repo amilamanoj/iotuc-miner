@@ -18,14 +18,21 @@
 
 package de.tum.in.i17.iotminer;
 
+import de.tum.in.i17.iotminer.lib.TweetProcessor;
 import de.tum.in.i17.iotminer.lib.data.Industry;
 import de.tum.in.i17.iotminer.lib.data.IndustryRepository;
+import de.tum.in.i17.iotminer.lib.data.Tweets;
+import de.tum.in.i17.iotminer.lib.data.TweetsRepository;
 import de.tum.in.i17.iotminer.lib.data.UseCase;
 import de.tum.in.i17.iotminer.lib.data.UseCaseRepository;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +46,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping(value = "/iot")
@@ -46,13 +55,17 @@ import java.util.List;
 @CrossOrigin
 public class WebController {
 
-    @Autowired
-    private UseCaseRepository useCaseRepository;
+    private final UseCaseRepository useCaseRepository;
+    private final IndustryRepository industryRepository;
+    private final TweetsRepository tweetRepository;
 
     @Autowired
-    private IndustryRepository industryRepository;
-
-    public WebController() throws IOException {
+    public WebController(UseCaseRepository useCaseRepository,
+                         IndustryRepository industryRepository,
+                         TweetsRepository tweetRepository) throws IOException {
+        this.useCaseRepository = useCaseRepository;
+        this.industryRepository = industryRepository;
+        this.tweetRepository = tweetRepository;
     }
 
 
@@ -98,6 +111,26 @@ public class WebController {
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(industryList);
+
+    }
+
+    @RequestMapping(value = "/tweets", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
+    @Transactional(readOnly = true)
+    public ResponseEntity getTweets(
+            @RequestParam(name = "input", required = false) String input,
+            HttpServletResponse response)
+            throws IllegalAccessException, URISyntaxException, ClassNotFoundException, IOException {
+
+        List<Tweets> tweetList;
+        Pageable limit = new PageRequest(0, 10);
+        Page<Tweets> page = tweetRepository.findAll(limit);
+        tweetList = page.getContent();
+        TweetProcessor tweetProcessor = new TweetProcessor();
+        for (Tweets tweets : tweetList) {
+            tweetProcessor.nounPhrases(tweets.getTweetText());
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(tweetList);
 
     }
 
