@@ -10,13 +10,19 @@ import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
+import opennlp.tools.stemmer.PorterStemmer;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
+import opennlp.tools.tokenize.WhitespaceTokenizer;
 import opennlp.tools.util.Span;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static opennlp.tools.tokenize.WhitespaceTokenizer.INSTANCE;
 
 public class TweetProcessor {
 
@@ -28,6 +34,48 @@ public class TweetProcessor {
         // Get the most probable language
         Language bestLanguage = myCategorizer.predictLanguage(tweet);
 
+    }
+
+    public ArrayList<String> stem(String words[]) {
+        ArrayList<String> stemWords = new ArrayList<String>(Arrays.asList(words));
+        PorterStemmer ps = new PorterStemmer();
+        for (String word : words) {
+            String stem = ps.stem(word);
+            stemWords.add(stem);
+        }
+        System.out.println("---------stemwords:----------");
+        System.out.println(stemWords);
+        return stemWords;
+    }
+
+    /**
+     * This function cleans the tweets by tokenizing them and removing the stop words.
+     *
+     * @param tweet
+     */
+    public void tweetClean(String tweet) {
+        // tokenizing the tweet
+        String tokens[] = tokenizer(tweet);
+
+        // removing the stopwords from the tokens
+        StopWords stopWords = new StopWords();
+        String list[] = stopWords.removeStopWords(tokens);
+
+        for (String word : list) {
+            System.out.println(word);
+        }
+        System.out.println("-----------------");
+    }
+
+    /**
+     * This function tokenizes the tweets
+     *
+     * @param tweet
+     * @return tokens
+     */
+    public String[] tokenizer(String tweet) {
+        String tokens[] = INSTANCE.tokenize(tweet);
+        return tokens;
     }
 
     public void nounPhrases(String tweet) throws IOException {
