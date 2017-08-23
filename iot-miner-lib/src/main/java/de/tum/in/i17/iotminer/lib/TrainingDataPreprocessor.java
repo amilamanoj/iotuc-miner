@@ -22,11 +22,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class TrainingDataPreprocessor {
 
@@ -50,7 +46,7 @@ public class TrainingDataPreprocessor {
 //        preprocessor.processWhole(content, new File("/Users/amilamanoj/Development/idp/data/smarthome_processed.csv"));
 
         List<String> tweets = preprocessor.getTweets();
-        preprocessor.process(tweets, new File("/Users/amilamanoj/Development/idp/data/smarthome_processed3.csv"));
+        preprocessor.process(tweets, new File("/home/vishesh/TUM/SS17/IDP/smarthome_processed4.csv"));
     }
 
     private void processWhole(String content, File target) throws IOException {
@@ -162,10 +158,26 @@ public class TrainingDataPreprocessor {
         }
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(target));
-        for (String line : lowerCaseLines) {
-            writer.write(line);
-            writer.newLine();
+//        for (String line : lowerCaseLines) {
+//            writer.write(line);
+//            writer.newLine();
+//        }
+        Iterator<String> iter = lowerCaseLines.iterator();
+        String first = iter.next();
+        writer.write(first);
+        writer.newLine();
+        while(iter.hasNext()) {
+            String second = iter.next();
+            double distance = tweetSimilarity.similarity(first, second);
+            if (distance < 0.5) {
+                writer.write(second);
+                writer.newLine();
+                first = second;
+            }
         }
+
+
+
         writer.flush();
         writer.close();
 
@@ -178,7 +190,7 @@ public class TrainingDataPreprocessor {
     }
 
     static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-    static final String DB_URL = "jdbc:mysql://localhost/iot";
+    static final String DB_URL = "jdbc:mysql://localhost/twitter";
 
     private  List<String>  getTweets() throws ClassNotFoundException, SQLException, IOException {
         List<String> tweets = new ArrayList<>();
@@ -191,7 +203,7 @@ public class TrainingDataPreprocessor {
 
             //STEP 3: Open a connection
             System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(DB_URL, "root", "root");
+            conn = DriverManager.getConnection(DB_URL, "root", "Welcome@01");
 
             //STEP 4: Execute a query
             System.out.println("Getting data ...");
