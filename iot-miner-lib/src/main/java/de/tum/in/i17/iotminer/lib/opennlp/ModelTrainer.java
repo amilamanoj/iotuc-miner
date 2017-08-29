@@ -1,4 +1,4 @@
-package de.tum.in.i17.iotminer.lib;
+package de.tum.in.i17.iotminer.lib.opennlp;
 
 import opennlp.tools.doccat.DoccatFactory;
 import opennlp.tools.doccat.DoccatModel;

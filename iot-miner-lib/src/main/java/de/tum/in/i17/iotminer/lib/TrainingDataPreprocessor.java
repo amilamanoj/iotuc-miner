@@ -31,6 +31,8 @@ public class TrainingDataPreprocessor {
     //create a text object factory
     private TextObjectFactory textObjectFactory;
 
+    private Properties properties;
+
 
     public TrainingDataPreprocessor() throws IOException {
         List<LanguageProfile> languageProfiles = new LanguageProfileReader().readAllBuiltIn();
@@ -38,6 +40,8 @@ public class TrainingDataPreprocessor {
                 .withProfiles(languageProfiles)
                 .build();
         textObjectFactory = CommonTextObjectFactories.forDetectingShortCleanText();
+        properties = new Properties();
+        properties.load(this.getClass().getResourceAsStream("/app.properties"));
     }
 
     public static void main(String[] args) throws IOException, SQLException, ClassNotFoundException {
@@ -46,7 +50,7 @@ public class TrainingDataPreprocessor {
 //        preprocessor.processWhole(content, new File("/Users/amilamanoj/Development/idp/data/smarthome_processed.csv"));
 
         List<String> tweets = preprocessor.getTweets();
-        preprocessor.process(tweets, new File("/home/vishesh/TUM/SS17/IDP/smarthome_processed4.csv"));
+        preprocessor.process(tweets, new File("/Users/amilamanoj/Development/idp/data/class-connectedcar.csv"));
     }
 
     private void processWhole(String content, File target) throws IOException {
@@ -150,7 +154,6 @@ public class TrainingDataPreprocessor {
             if (newLine.contains("google home")) {
                 System.out.println("debug");
             }
-
             if ("en".equals(lang)) {
                 lowerCaseLines.add(newLine);
 
@@ -158,10 +161,7 @@ public class TrainingDataPreprocessor {
         }
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(target));
-//        for (String line : lowerCaseLines) {
-//            writer.write(line);
-//            writer.newLine();
-//        }
+
         Iterator<String> iter = lowerCaseLines.iterator();
         String first = iter.next();
         writer.write(first);
@@ -176,8 +176,6 @@ public class TrainingDataPreprocessor {
             }
         }
 
-
-
         writer.flush();
         writer.close();
 
@@ -189,9 +187,6 @@ public class TrainingDataPreprocessor {
         return languageDetector.detect(textObject);
     }
 
-    static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-    static final String DB_URL = "jdbc:mysql://localhost/twitter";
-
     private  List<String>  getTweets() throws ClassNotFoundException, SQLException, IOException {
         List<String> tweets = new ArrayList<>();
         Connection conn = null;
@@ -199,18 +194,20 @@ public class TrainingDataPreprocessor {
         ResultSet rs = null;
         try {
             //STEP 2: Register JDBC driver
-            Class.forName(JDBC_DRIVER);
+            Class.forName(properties.getProperty("jdbc.driver"));
 
             //STEP 3: Open a connection
             System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(DB_URL, "root", "Welcome@01");
+            conn = DriverManager.getConnection(properties.getProperty("db.url"), properties.getProperty("db.user"), properties.getProperty("db.pass"));
 
             //STEP 4: Execute a query
             System.out.println("Getting data ...");
             stmt = conn.createStatement();
             String sql;
             sql = "SELECT tweet_text FROM `tweets` " +
-                    "WHERE (tweet_text like '%smarthome%' or tweet_text like '%smart home%') " +
+                    "WHERE (tweet_text like '%connected car%' or tweet_text like '%connectedcar%') " +
+                    " or (tweet_text like '%smart car%' or tweet_text like '%smartcar%') " +
+                    " or (tweet_text like '%driverless%') " +
                     "and tweet_text like '%iot%'";
             rs = stmt.executeQuery(sql);
             while (rs.next()) {
@@ -238,11 +235,11 @@ public class TrainingDataPreprocessor {
         ResultSet rs = null;
         try {
             //STEP 2: Register JDBC driver
-            Class.forName(JDBC_DRIVER);
+            Class.forName(properties.getProperty("jdbc.driver"));
 
             //STEP 3: Open a connection
             System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(DB_URL, "root", "root");
+            conn = DriverManager.getConnection(properties.getProperty("db.url"), properties.getProperty("db.user"), properties.getProperty("db.pass"));
 
             //STEP 4: Execute a query
             System.out.println("Creating statement...");
