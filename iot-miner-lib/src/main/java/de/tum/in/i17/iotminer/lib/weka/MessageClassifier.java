@@ -7,16 +7,89 @@ import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
-import weka.core.Utils;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.StringToWordVector;
 
+import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.IOException;
 import java.io.Serializable;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-public class MessageClassifier implements Serializable {
+public class MessageClassifier {
+
+    private WekaMessageClassifier wekaClassifier;
+
+    private File dataDir;
+
+    private String modelFile;
+
+    public MessageClassifier(File dataDir, String modelFile) throws Exception {
+
+        this.dataDir = dataDir;
+        this.modelFile = modelFile;
+
+        if (modelFile.length() == 0)
+            throw new Exception("Must provide name of model file (’-t <file>’).");
+        try {
+            wekaClassifier = (WekaMessageClassifier) SerializationHelper.read(modelFile);
+        } catch (FileNotFoundException e) {
+            wekaClassifier = new WekaMessageClassifier(dataDir);
+        }
+    }
+
+
+    public static void main(String[] args) throws Exception {
+        MessageClassifier classifier = new MessageClassifier(new File(MessageClassifier.class.getResource("/supervised/data").toURI()), "weka-model.txt");
+        classifier.train();
+        classifier.process("enabling access to for millions more in asia #iot #feedly #smartcity", "");
+
+    }
+
+    public void train() throws IOException {
+        for (File file : dataDir.listFiles()) {
+            String fileName = file.getName();
+            String className = fileName.split("-")[1];
+            className = className.substring(0, className.length() - 4);
+            System.out.println("Training for class: " + className);
+            List<String> lines = Files.readAllLines(file.toPath());
+            for (String line : lines) {
+                this.process(line, className);
+            }
+        }
+    }
+
+    /**
+     * message Points to the file containing the message to classify or use for
+     * updating the model.
+     * classValue The class label of the message if model is to be updated. Omit for
+     * classification of a message.
+     */
+    public void process(String message, String classValue) {
+        try {
+
+            if (classValue.length() != 0) {
+                wekaClassifier.updateData(message, classValue);
+                // Save message classifier object only if it was updated.}
+                SerializationHelper.write(modelFile, wekaClassifier);
+            }
+            else {
+                wekaClassifier.classifyMessage(message);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+}
+
+
+class WekaMessageClassifier implements Serializable {
     /**
      * for serialization.
      */
@@ -45,7 +118,7 @@ public class MessageClassifier implements Serializable {
     /**
      * Constructs empty training dataset.
      */
-    public MessageClassifier() {
+    public WekaMessageClassifier(File dataDir) throws URISyntaxException {
         String nameOfDataset = "MessageClassificationProblem";
         // Create vector of attributes.
         ArrayList<Attribute> attributes = new ArrayList<Attribute>(2);
@@ -53,66 +126,18 @@ public class MessageClassifier implements Serializable {
         attributes.add(new Attribute("Message", (ArrayList<String>) null));
         // Add class attribute.
         ArrayList<String> classValues = new ArrayList<String>(2);
-        classValues.add("miss");
-        classValues.add("hit");
+
+        for (File file : dataDir.listFiles()) {
+            String fileName = file.getName();
+            String className = fileName.split("-")[1];
+            className = className.substring(0, className.length() - 4);
+            classValues.add(className);
+
+        }
         attributes.add(new Attribute("Class", classValues));
         // Create dataset with initial capacity of 100, and set index of class.
         m_Data = new Instances(nameOfDataset, attributes, 100);
         m_Data.setClassIndex(m_Data.numAttributes() - 1);
-    }
-
-    /**
-     * Main method. The following parameters are recognized:
-     * <p>
-     * -m messagefile
-     * Points to the file containing the message to classify or use for
-     * updating the model.
-     * -c classlabel
-     * The class label of the message if model is to be updated. Omit for
-     * classification of a message.
-     * -t modelfile
-     * The file containing the model. If it doesn’t exist, it will be
-     * created automatically.
-     *
-     * @param args the commandline options
-     */
-    public static void main(String[] args) {
-        try {
-            // Read message file into string.
-            String messageName = Utils.getOption('m', args);
-            if (messageName.length() == 0)
-                throw new Exception("Must provide name of message file (’-m <file>’).");
-            FileReader m = new FileReader(messageName);
-            StringBuffer message = new StringBuffer();
-            int l;
-            while ((l = m.read()) != -1)
-                message.append((char) l);
-            m.close();
-            // Check if class value is given.
-            String classValue = Utils.getOption('c', args);
-            // If model file exists, read it, otherwise create new one.
-            String modelName = Utils.getOption('t', args);
-            if (modelName.length() == 0)
-                throw new Exception("Must provide name of model file (’-t <file>’).");
-            MessageClassifier messageCl;
-            try {
-                messageCl = (MessageClassifier) SerializationHelper.read(modelName);
-            } catch (FileNotFoundException e) {
-                messageCl = new MessageClassifier();
-            }
-            // Check if there are any options left
-            Utils.checkForRemainingOptions(args);
-            // Process message.
-            if (classValue.length() != 0)
-                messageCl.updateData(message.toString(), classValue);
-            else
-                messageCl.classifyMessage(message.toString());
-            // Save message classifier object only if it was updated.
-            if (classValue.length() != 0)
-                SerializationHelper.write(modelName, messageCl);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -148,6 +173,7 @@ public class MessageClassifier implements Serializable {
             // Generate word counts from the training data.
             Instances filteredData = Filter.useFilter(m_Data, m_Filter);
             // Rebuild classifier.
+            System.out.println("Building classifier");
             m_Classifier.buildClassifier(filteredData);
             m_UpToDate = true;
         }
@@ -159,11 +185,12 @@ public class MessageClassifier implements Serializable {
         // Filter instance.
         m_Filter.input(instance);
         Instance filteredInstance = m_Filter.output();
+        System.out.println("Classifying: " + message);
         // Get index of predicted class value.
         double predicted = m_Classifier.classifyInstance(filteredInstance);
+        System.out.println(Arrays.toString(m_Classifier.distributionForInstance(filteredInstance)));
         // Output class value.
-        System.err.println("Message classified as : " +
-                                   m_Data.classAttribute().value((int) predicted));
+        System.out.println("Message classified as : " + m_Data.classAttribute().value((int) predicted));
     }
 
     /**
