@@ -1,6 +1,6 @@
-package de.tum.in.i17.iotminer.lib;
+package de.tum.in.i17.iotminer.lib.util;
 
-public class tweetSimilarity {
+public class TweetSimilarity {
     public static void main(String[] args) {
         printSimilarity("Tweet is one two three", "Tweet is four five six");
         printSimilarity("A bit similar tweet", "A bit too much similar tweet");
@@ -25,7 +25,7 @@ public class tweetSimilarity {
     }
 
 
-    public static int editDistance(String s1, String s2) {
+    private static int editDistance(String s1, String s2) {
         s1 = s1.toLowerCase();
         s2 = s2.toLowerCase();
 

@@ -1,4 +1,4 @@
-package de.tum.in.i17.iotminer.lib;
+package de.tum.in.i17.iotminer.lib.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;

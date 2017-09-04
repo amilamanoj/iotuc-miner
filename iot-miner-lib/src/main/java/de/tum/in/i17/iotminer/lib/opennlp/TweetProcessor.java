@@ -1,5 +1,6 @@
-package de.tum.in.i17.iotminer.lib;
+package de.tum.in.i17.iotminer.lib.opennlp;
 
+import de.tum.in.i17.iotminer.lib.util.StopWords;
 import opennlp.tools.chunker.ChunkerME;
 import opennlp.tools.chunker.ChunkerModel;
 import opennlp.tools.langdetect.Language;
@@ -13,7 +14,6 @@ import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.stemmer.PorterStemmer;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
-import opennlp.tools.tokenize.WhitespaceTokenizer;
 import opennlp.tools.util.Span;
 
 import java.io.ByteArrayInputStream;

@@ -61,6 +61,7 @@
                         <configuration>
                             <classifier>exec</classifier>
                             <layout>NONE</layout>
+                            <mainClass>de.tum.in.i17.iotminer.lib.TrainingDataPreprocessor</mainClass>
                         </configuration>
                     </execution>
                 </executions>

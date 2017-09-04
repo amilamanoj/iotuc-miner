@@ -23,8 +23,8 @@ import java.util.List;
 
 public class ModelTrainer {
     public static void main(String[] args) throws URISyntaxException, IOException {
-        //new ModelTrainer().trainModel(args[0], args[1]);
-        new ModelTrainer().prepareTrainingFile("opennlp-input.txt");
+        new ModelTrainer().trainModel("opennlp-input-step1.txt", "onlp-model-s1.txt");
+        //new ModelTrainer().prepareTrainingFileStep1("opennlp-input-step1.txt");
     }
 
     public void trainModel(String inputFile, String modelFile) {
@@ -53,7 +53,33 @@ public class ModelTrainer {
 
     }
 
-    public void prepareTrainingFile(String outFileName) throws URISyntaxException, IOException {
+    public void prepareTrainingFileStep1(String outFileName) throws URISyntaxException, IOException {
+        File dataDir = new File(this.getClass().getResource("/supervised/data/step2").toURI());
+        File outFile = new File(outFileName);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
+
+        for (File file : dataDir.listFiles()) {
+            String fileName = file.getName();
+            String className = fileName.split("-")[1];
+            //className = className.substring(0, className.length() - 4);
+            List<String> lines = Files.readAllLines(file.toPath());
+            for (String line : lines) {
+                writer.write("iot " + line);
+                writer.newLine();
+            }
+        }
+
+        List<String> noIotlines = Files.readAllLines(new File(this.getClass().getResource("/supervised/data/step1/class-noiot.csv").toURI()).toPath());
+        for (String line : noIotlines) {
+            writer.write("noiot " + line);
+            writer.newLine();
+        }
+
+        writer.flush();
+        writer.close();
+    }
+
+    public void prepareTrainingFileStep2(String outFileName) throws URISyntaxException, IOException {
         File dataDir = new File(this.getClass().getResource("/supervised/data").toURI());
         File outFile = new File(outFileName);
         BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));

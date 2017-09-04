@@ -10,6 +10,7 @@ import com.optimaize.langdetect.profiles.LanguageProfileReader;
 import com.optimaize.langdetect.text.CommonTextObjectFactories;
 import com.optimaize.langdetect.text.TextObject;
 import com.optimaize.langdetect.text.TextObjectFactory;
+import de.tum.in.i17.iotminer.lib.util.TweetSimilarity;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -168,7 +169,7 @@ public class TrainingDataPreprocessor {
         writer.newLine();
         while(iter.hasNext()) {
             String second = iter.next();
-            double distance = tweetSimilarity.similarity(first, second);
+            double distance = TweetSimilarity.similarity(first, second);
             if (distance < 0.5) {
                 writer.write(second);
                 writer.newLine();

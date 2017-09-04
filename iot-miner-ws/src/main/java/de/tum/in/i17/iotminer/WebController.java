@@ -18,7 +18,7 @@
 
 package de.tum.in.i17.iotminer;
 
-import de.tum.in.i17.iotminer.lib.TweetProcessor;
+import de.tum.in.i17.iotminer.lib.opennlp.TweetProcessor;
 import de.tum.in.i17.iotminer.lib.data.Industry;
 import de.tum.in.i17.iotminer.lib.data.IndustryRepository;
 import de.tum.in.i17.iotminer.lib.data.Tweets;
@@ -46,8 +46,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 @RestController
 @RequestMapping(value = "/iot")

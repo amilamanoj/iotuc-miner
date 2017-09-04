@@ -6,90 +6,15 @@ import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
-import weka.core.SerializationHelper;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.StringToWordVector;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.Serializable;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
-public class MessageClassifier {
-
-    private WekaMessageClassifier wekaClassifier;
-
-    private File dataDir;
-
-    private String modelFile;
-
-    public MessageClassifier(File dataDir, String modelFile) throws Exception {
-
-        this.dataDir = dataDir;
-        this.modelFile = modelFile;
-
-        if (modelFile.length() == 0)
-            throw new Exception("Must provide name of model file (’-t <file>’).");
-        try {
-            wekaClassifier = (WekaMessageClassifier) SerializationHelper.read(modelFile);
-        } catch (FileNotFoundException e) {
-            wekaClassifier = new WekaMessageClassifier(dataDir);
-        }
-    }
-
-
-    public static void main(String[] args) throws Exception {
-        MessageClassifier classifier = new MessageClassifier(new File(MessageClassifier.class.getResource("/supervised/data").toURI()), "weka-model.txt");
-        classifier.train();
-        classifier.process("enabling access to for millions more in asia #iot #feedly #smartcity", "");
-
-    }
-
-    public void train() throws IOException {
-        for (File file : dataDir.listFiles()) {
-            String fileName = file.getName();
-            String className = fileName.split("-")[1];
-            className = className.substring(0, className.length() - 4);
-            System.out.println("Training for class: " + className);
-            List<String> lines = Files.readAllLines(file.toPath());
-            for (String line : lines) {
-                this.process(line, className);
-            }
-        }
-    }
-
-    /**
-     * message Points to the file containing the message to classify or use for
-     * updating the model.
-     * classValue The class label of the message if model is to be updated. Omit for
-     * classification of a message.
-     */
-    public void process(String message, String classValue) {
-        try {
-
-            if (classValue.length() != 0) {
-                wekaClassifier.updateData(message, classValue);
-                // Save message classifier object only if it was updated.}
-                SerializationHelper.write(modelFile, wekaClassifier);
-            }
-            else {
-                wekaClassifier.classifyMessage(message);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-}
-
-
-class WekaMessageClassifier implements Serializable {
+public class WekaMessageClassifier {
     /**
      * for serialization.
      */
@@ -162,7 +87,7 @@ class WekaMessageClassifier implements Serializable {
      * @param message the message content
      * @throws Exception if classification fails
      */
-    public void classifyMessage(String message) throws Exception {
+    public String classifyMessage(String message) throws Exception {
         // Check whether classifier has been built.
         if (m_Data.numInstances() == 0)
             throw new Exception("No classifier available.");
@@ -190,7 +115,9 @@ class WekaMessageClassifier implements Serializable {
         double predicted = m_Classifier.classifyInstance(filteredInstance);
         System.out.println(Arrays.toString(m_Classifier.distributionForInstance(filteredInstance)));
         // Output class value.
-        System.out.println("Message classified as : " + m_Data.classAttribute().value((int) predicted));
+        String res = m_Data.classAttribute().value((int) predicted);
+        System.out.println("Message classified as : " + res);
+        return res;
     }
 
     /**
