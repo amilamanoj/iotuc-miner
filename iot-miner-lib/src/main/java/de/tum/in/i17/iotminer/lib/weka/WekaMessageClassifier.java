@@ -10,11 +10,12 @@ import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.StringToWordVector;
 
 import java.io.File;
+import java.io.Serializable;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class WekaMessageClassifier {
+public class WekaMessageClassifier implements Serializable {
     /**
      * for serialization.
      */

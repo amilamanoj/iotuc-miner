@@ -42,7 +42,7 @@ public class WekaCategorizer implements Categorizer {
 
     public static void main(String[] args) throws Exception {
         WekaCategorizer classifier = new WekaCategorizer(
-                new File(WekaCategorizer.class.getResource("/supervised/data").toURI()), "weka-model.txt");
+                new File(WekaCategorizer.class.getResource("/supervised/data/step1").toURI()), "weka-model-s1.txt");
         classifier.train();
         classifier.process("enabling access to for millions more in asia #iot #feedly #smartcity", "");
 

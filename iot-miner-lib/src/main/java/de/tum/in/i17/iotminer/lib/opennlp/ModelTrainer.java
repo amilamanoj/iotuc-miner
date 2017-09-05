@@ -23,8 +23,10 @@ import java.util.List;
 
 public class ModelTrainer {
     public static void main(String[] args) throws URISyntaxException, IOException {
-        new ModelTrainer().trainModel("opennlp-input-step1.txt", "onlp-model-s1.txt");
-        //new ModelTrainer().prepareTrainingFileStep1("opennlp-input-step1.txt");
+        new ModelTrainer().prepareTrainingFileStep1("onlp-input-step1.txt");
+        new ModelTrainer().prepareTrainingFileStep2("onlp-input-step2.txt");
+        new ModelTrainer().trainModel("onlp-input-step1.txt", "onlp-model-s1.txt");
+        new ModelTrainer().trainModel("onlp-input-step2.txt", "onlp-model-s2.txt");
     }
 
     public void trainModel(String inputFile, String modelFile) {
@@ -54,6 +56,8 @@ public class ModelTrainer {
     }
 
     public void prepareTrainingFileStep1(String outFileName) throws URISyntaxException, IOException {
+
+        // Collect all IoT related tweets from step2 data and write them to the training file
         File dataDir = new File(this.getClass().getResource("/supervised/data/step2").toURI());
         File outFile = new File(outFileName);
         BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
@@ -69,7 +73,9 @@ public class ModelTrainer {
             }
         }
 
-        List<String> noIotlines = Files.readAllLines(new File(this.getClass().getResource("/supervised/data/step1/class-noiot.csv").toURI()).toPath());
+        // Add non-IoT tweets to the training file
+        List<String> noIotlines = Files.readAllLines(
+                new File(this.getClass().getResource("/supervised/data/step1/class-noiot.csv").toURI()).toPath());
         for (String line : noIotlines) {
             writer.write("noiot " + line);
             writer.newLine();
@@ -80,7 +86,7 @@ public class ModelTrainer {
     }
 
     public void prepareTrainingFileStep2(String outFileName) throws URISyntaxException, IOException {
-        File dataDir = new File(this.getClass().getResource("/supervised/data").toURI());
+        File dataDir = new File(this.getClass().getResource("/supervised/data/step2").toURI());
         File outFile = new File(outFileName);
         BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
 
