@@ -11,6 +11,11 @@ import com.optimaize.langdetect.text.CommonTextObjectFactories;
 import com.optimaize.langdetect.text.TextObject;
 import com.optimaize.langdetect.text.TextObjectFactory;
 import de.tum.in.i17.iotminer.lib.util.TweetSimilarity;
+import opennlp.tools.stemmer.Stemmer;
+import opennlp.tools.stemmer.snowball.SnowballStemmer;
+import opennlp.tools.tokenize.WhitespaceTokenizer;
+import weka.core.stopwords.AbstractStopwords;
+import weka.core.stopwords.Rainbow;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -52,32 +57,35 @@ public class TrainingDataPreprocessor {
     private void process(List<String> content, File target) throws IOException {
 
         System.out.println("Processing content: " + content.size());
-        TreeSet<String> lowerCaseLines = new TreeSet<>();
+        TreeSet<String> sortedLines = new TreeSet<>();
 
         for (String line: content) {
             if (line.contains("??????")) {
                 continue;
             }
-            String newLine = cleanTweet(line);
+            String cleanedLine = cleanTweet(line);
 
-            if (newLine.length() < 80) {
+            if (cleanedLine.length() < 80) {
                 continue;
             }
 
-            String lang =  detectLanguage(newLine);
-            if ("en".equals(lang)) {
-                lowerCaseLines.add(newLine);
+            String lang =  detectLanguage(cleanedLine);
+            if (!"en".equals(lang)) {
+                continue;
             }
+
+            String resultLine = performSWRAndStemming(cleanedLine);
+            sortedLines.add(resultLine);
         }
-        System.out.println("After removing short and non-english text: " + lowerCaseLines.size());
+        System.out.println("After removing short and non-english text: " + sortedLines.size());
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(target));
 
         List<String> writtenLines = new ArrayList<>();
-        String firstLine = lowerCaseLines.pollFirst();
+        String firstLine = sortedLines.pollFirst();
         writer.write(firstLine);
         writtenLines.add(firstLine);
-        for (String line : lowerCaseLines) {
+        for (String line : sortedLines) {
             boolean shouldWrite = true;
             for (String writtenLine : writtenLines) {
                 double similarity = TweetSimilarity.similarity(line, writtenLine);
@@ -95,6 +103,25 @@ public class TrainingDataPreprocessor {
         writer.close();
 
         System.out.printf("After removing duplicates: " + writtenLines.size());
+    }
+
+    private String performSWRAndStemming(String cleanedLine) {
+        String[] tokens = WhitespaceTokenizer.INSTANCE.tokenize(cleanedLine);
+
+        List<String> nonStopWords = new ArrayList<>();
+        AbstractStopwords rainbow = new Rainbow();
+        for (String token : tokens) {
+            if (!rainbow.isStopword(token)) {
+                nonStopWords.add(token);
+            }
+        }
+
+        List<String> stemmedWords = new ArrayList<>();
+        Stemmer stemmer = new SnowballStemmer(SnowballStemmer.ALGORITHM.ENGLISH);
+        for (String token : nonStopWords) {
+            stemmedWords.add(stemmer.stem(token).toString());
+        }
+        return String.join(" ", stemmedWords);
     }
 
     private String cleanTweet(String line) {
