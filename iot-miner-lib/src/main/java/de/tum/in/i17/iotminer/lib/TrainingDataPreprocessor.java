@@ -16,8 +16,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -47,65 +45,8 @@ public class TrainingDataPreprocessor {
 
     public static void main(String[] args) throws IOException, SQLException, ClassNotFoundException {
         TrainingDataPreprocessor preprocessor = new TrainingDataPreprocessor();
-//        String content = preprocessor.getTweetsContent();
-//        preprocessor.processWhole(content, new File("/Users/amilamanoj/Development/idp/data/smarthome_processed.csv"));
-
         List<String> tweets = preprocessor.getTweets();
         preprocessor.process(tweets, new File("/Users/amilamanoj/Development/idp/data/class-connectedcar.csv"));
-    }
-
-    private void processWhole(String content, File target) throws IOException {
-
-        System.out.println("Processing...");
-
-        Set<String> lowerCaseLines = new TreeSet<>();
-
-
-        String newContent = content.toLowerCase();
-        // line breaks
-        newContent = newContent.replaceAll("\\\\\\n", "");
-        // links
-        newContent = newContent.replaceAll("http([^\\s]+)", "");
-        // twitter handles
-        newContent = newContent.replaceAll("@([^\\s]+)", "");
-
-        newContent = newContent.replaceAll("[(]via", "");
-        newContent = newContent.replaceAll(":\\w\\wvia", "");
-        newContent = newContent.replaceAll("via \\n", "");
-
-        newContent = newContent.replaceAll("[^\\s]+…\\n", "");
-        newContent = newContent.replaceAll("[^\\s]+… \\n", "");
-        newContent = newContent.replaceAll("[^\\s]+\\.\\.\\. \\n", "");
-        newContent = newContent.replaceAll("…\\n", "");
-        newContent = newContent.replaceAll("… \\n", "");
-        newContent = newContent.replaceAll("\\.\\.\\. \\n", "");
-
-        String[] lines = newContent.split("\n");
-
-        Collections.addAll(lowerCaseLines, lines);
-
-        System.out.println("Language detection...");
-
-
-        BufferedWriter writer = new BufferedWriter(new FileWriter(target));
-        for (String line : lowerCaseLines) {
-            if (line.contains("??????")) {
-                continue;
-            }
-            String lang = "";
-            Optional<LdLocale> langOpt = detectLanguage(line);
-            if (langOpt.isPresent()) {
-                lang = langOpt.get().getLanguage();
-            }
-
-            if ("en".equals(lang) || lang.isEmpty()) {
-                writer.write(lang + " : " + line);
-                writer.newLine();
-            }
-        }
-        writer.flush();
-        writer.close();
-
     }
 
     private void process(List<String> content, File target) throws IOException {
@@ -114,50 +55,19 @@ public class TrainingDataPreprocessor {
 
         Set<String> lowerCaseLines = new TreeSet<>();
 
-
         for (String line: content) {
             if (line.contains("??????")) {
                 continue;
             }
-            String newLine = line.trim();
-
-            newLine = newLine.toLowerCase();
-
-            // line breaks
-            newLine = newLine.replaceAll("\\n", "");
-            // links
-            newLine = newLine.replaceAll("http([^\\s]+)", "");
-            // twitter handles
-            newLine = newLine.replaceAll("via @([^\\s]+)", "");
-            newLine = newLine.replaceAll("@([^\\s]+)", "");
-
-            newLine = newLine.replaceAll("[(]via", "");
-            newLine = newLine.replaceAll(":\\w\\wvia", "");
-
-            newLine = newLine.replaceAll("[^\\s]+…", "");
-            newLine = newLine.replaceAll("[^\\s]+… ", "");
-            newLine = newLine.replaceAll("[^\\s]+\\.\\.\\. ", "");
-            newLine = newLine.replaceAll("…", "");
-            newLine = newLine.replaceAll("… ", "");
-            newLine = newLine.replaceAll("\\.\\.\\. ", "");
-            newLine = newLine.replaceAll(" +", " ");
+            String newLine = cleanTweet(line);
 
             if (newLine.length() < 80) {
                 continue;
             }
 
-            String lang = "";
-            Optional<LdLocale> langOpt = detectLanguage(newLine);
-            if (langOpt.isPresent()) {
-                lang = langOpt.get().getLanguage();
-            }
-
-            if (newLine.contains("google home")) {
-                System.out.println("debug");
-            }
+            String lang =  detectLanguage(newLine);
             if ("en".equals(lang)) {
                 lowerCaseLines.add(newLine);
-
             }
         }
 
@@ -182,10 +92,41 @@ public class TrainingDataPreprocessor {
 
     }
 
-    private Optional<LdLocale> detectLanguage(String tweet) throws IOException {
+    private String cleanTweet(String line) {
+        String newLine = line.trim();
+
+        newLine = newLine.toLowerCase();
+
+        // line breaks
+        newLine = newLine.replaceAll("\\n", "");
+        // links
+        newLine = newLine.replaceAll("http([^\\s]+)", "");
+        // twitter handles
+        newLine = newLine.replaceAll("via @([^\\s]+)", "");
+        newLine = newLine.replaceAll("@([^\\s]+)", "");
+
+        newLine = newLine.replaceAll("[(]via", "");
+        newLine = newLine.replaceAll(":\\w\\wvia", "");
+
+        newLine = newLine.replaceAll("[^\\s]+…", "");
+        newLine = newLine.replaceAll("[^\\s]+… ", "");
+        newLine = newLine.replaceAll("[^\\s]+\\.\\.\\. ", "");
+        newLine = newLine.replaceAll("…", "");
+        newLine = newLine.replaceAll("… ", "");
+        newLine = newLine.replaceAll("\\.\\.\\. ", "");
+        newLine = newLine.replaceAll(" +", " ");
+        return newLine;
+    }
+
+    private String detectLanguage(String tweet) throws IOException {
         //query:
         TextObject textObject = textObjectFactory.forText(tweet);
-        return languageDetector.detect(textObject);
+        Optional<LdLocale>  res = languageDetector.detect(textObject);
+        if (res.isPresent()) {
+            return res.get().getLanguage();
+        } else {
+            return "n/a";
+        }
     }
 
     private  List<String>  getTweets() throws ClassNotFoundException, SQLException, IOException {
@@ -194,14 +135,13 @@ public class TrainingDataPreprocessor {
         Statement stmt = null;
         ResultSet rs = null;
         try {
-            //STEP 2: Register JDBC driver
+            //Register JDBC driver
             Class.forName(properties.getProperty("jdbc.driver"));
-
-            //STEP 3: Open a connection
+            //Open connection
             System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(properties.getProperty("db.url"), properties.getProperty("db.user"), properties.getProperty("db.pass"));
-
-            //STEP 4: Execute a query
+            conn = DriverManager.getConnection(properties.getProperty("db.url"),
+                                               properties.getProperty("db.user"), properties.getProperty("db.pass"));
+            // Execute a query
             System.out.println("Getting data ...");
             stmt = conn.createStatement();
             String sql;
@@ -229,41 +169,4 @@ public class TrainingDataPreprocessor {
         }
     }
 
-    private String getTweetsContent() throws ClassNotFoundException, SQLException, IOException {
-        List<String> tweets = new ArrayList<>();
-        Connection conn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
-        try {
-            //STEP 2: Register JDBC driver
-            Class.forName(properties.getProperty("jdbc.driver"));
-
-            //STEP 3: Open a connection
-            System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(properties.getProperty("db.url"), properties.getProperty("db.user"), properties.getProperty("db.pass"));
-
-            //STEP 4: Execute a query
-            System.out.println("Creating statement...");
-            stmt = conn.createStatement();
-            String sql;
-            sql = "SELECT tweet_text INTO OUTFILE '/Users/amilamanoj/Development/idp/data/tmp.csv' " +
-                    "FIELDS TERMINATED BY ',' LINES TERMINATED BY '\\n' FROM `tweets` " +
-                    "WHERE (tweet_text like '%smarthome%' or tweet_text like '%smart home%') and tweet_text like '%iot%' limit 2000;";
-            rs = stmt.executeQuery(sql);
-//            while (rs.next()) {
-//                int id = rs.getInt("id");
-//            }
-            return new String(Files.readAllBytes(Paths.get("/Users/amilamanoj/Development/idp/data/tmp.csv")));
-        } finally {
-            if (rs != null) {
-                rs.close();
-            }
-            if (stmt != null) {
-                stmt.close();
-            }
-            if (conn != null) {
-                conn.close();
-            }
-        }
-    }
 }
