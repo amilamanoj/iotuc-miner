@@ -53,7 +53,7 @@ public class TrainingDataPreprocessor {
 
         System.out.println("Processing...");
 
-        Set<String> lowerCaseLines = new TreeSet<>();
+        TreeSet<String> lowerCaseLines = new TreeSet<>();
 
         for (String line: content) {
             if (line.contains("??????")) {
@@ -73,20 +73,20 @@ public class TrainingDataPreprocessor {
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(target));
 
-        Iterator<String> iter = lowerCaseLines.iterator();
-        String first = iter.next();
-        writer.write(first);
-        writer.newLine();
-        while(iter.hasNext()) {
-            String second = iter.next();
-            double distance = TweetSimilarity.similarity(first, second);
-            if (distance < 0.5) {
-                writer.write(second);
-                writer.newLine();
-                first = second;
+        List<String> writtenLines = new ArrayList<>();
+        String firstLine = lowerCaseLines.pollFirst();
+        writer.write(firstLine);
+        writtenLines.add(firstLine);
+        for (String line: lowerCaseLines){
+            for(String writtenLine: writtenLines){
+                double similarity = TweetSimilarity.similarity(line, writtenLine);
+                if(similarity < 0.5) {
+                    writer.write(line);
+                    writer.newLine();
+                    writtenLines.add(line);
+                }
             }
         }
-
         writer.flush();
         writer.close();
 
