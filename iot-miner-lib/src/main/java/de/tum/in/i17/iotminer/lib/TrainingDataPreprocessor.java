@@ -115,6 +115,7 @@ public class TrainingDataPreprocessor {
         newLine = newLine.replaceAll("… ", "");
         newLine = newLine.replaceAll("\\.\\.\\. ", "");
         newLine = newLine.replaceAll(" +", " ");
+        newLine = newLine.replaceAll("[0-9]","");
         return newLine;
     }
 
