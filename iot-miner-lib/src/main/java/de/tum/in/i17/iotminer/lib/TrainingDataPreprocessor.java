@@ -51,8 +51,7 @@ public class TrainingDataPreprocessor {
 
     private void process(List<String> content, File target) throws IOException {
 
-        System.out.println("Processing...");
-
+        System.out.println("Processing content: " + content.size());
         TreeSet<String> lowerCaseLines = new TreeSet<>();
 
         for (String line: content) {
@@ -70,6 +69,7 @@ public class TrainingDataPreprocessor {
                 lowerCaseLines.add(newLine);
             }
         }
+        System.out.println("After removing short and non-english text: " + lowerCaseLines.size());
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(target));
 
@@ -77,19 +77,24 @@ public class TrainingDataPreprocessor {
         String firstLine = lowerCaseLines.pollFirst();
         writer.write(firstLine);
         writtenLines.add(firstLine);
-        for (String line: lowerCaseLines){
-            for(String writtenLine: writtenLines){
+        for (String line : lowerCaseLines) {
+            boolean shouldWrite = true;
+            for (String writtenLine : writtenLines) {
                 double similarity = TweetSimilarity.similarity(line, writtenLine);
-                if(similarity < 0.5) {
-                    writer.write(line);
-                    writer.newLine();
-                    writtenLines.add(line);
+                if (similarity > 0.5) {
+                    shouldWrite = false;
                 }
+            }
+            if (shouldWrite) {
+                writer.write(line);
+                writer.newLine();
+                writtenLines.add(line);
             }
         }
         writer.flush();
         writer.close();
 
+        System.out.printf("After removing duplicates: " + writtenLines.size());
     }
 
     private String cleanTweet(String line) {
