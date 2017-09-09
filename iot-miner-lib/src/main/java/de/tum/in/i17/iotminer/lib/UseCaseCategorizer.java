@@ -19,6 +19,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
@@ -38,8 +39,8 @@ public class UseCaseCategorizer {
     public UseCaseCategorizer() throws Exception {
         properties = new Properties();
         properties.load(this.getClass().getResourceAsStream("/app.properties"));
-        categorizer1 = new WekaCategorizer("weka-model-s1.txt");
-        categorizer2 = new OpenNlpCategorizer("onlp-model-s2.txt");
+        //categorizer1 = new WekaCategorizer("weka-model-s1.txt");
+        categorizer2 = new OpenNlpCategorizer("onlp-model-s1.txt");
         List<LanguageProfile> languageProfiles = new LanguageProfileReader().readAllBuiltIn();
         languageDetector = LanguageDetectorBuilder.create(NgramExtractors.standard())
                 .withProfiles(languageProfiles)
@@ -102,13 +103,15 @@ public class UseCaseCategorizer {
         return iotTweets;
     }
 
-    void classifyTweets(List<String> tweets) throws Exception {
+    public HashMap classifyTweets(List<String> tweets) throws Exception {
+        HashMap classificationMap = new HashMap();
         for (String tweet : tweets) {
             String category = categorizer2.categorize(tweet);
             System.out.println(category + " : " + tweet);
             System.out.println("====================");
+            classificationMap.put(tweet, category);
         }
         System.out.println("Total IoT usecases: " + tweets.size());
-
+        return classificationMap;
     }
 }
