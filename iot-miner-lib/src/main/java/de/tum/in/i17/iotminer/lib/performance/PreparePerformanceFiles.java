@@ -1,20 +1,15 @@
 package de.tum.in.i17.iotminer.lib.performance;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 
-public class NumberOfLines {
-
-    public static void main(String[] args) throws IOException, URISyntaxException {
-        // new NumberOfLines().prepareClassIotFile("class-iot.csv");
-        // new NumberOfLines().numberOfLine();
-        //new NumberOfLines().generateIotFiles();
-        //new NumberOfLines().generateNoIotFiles();
-        new NumberOfLines().prepareTrainingData();
-    }
+public class PreparePerformanceFiles {
 
     public void generateIotFiles() throws IOException, URISyntaxException {
         File iotTestFile = new File("testIot.csv");
@@ -27,13 +22,11 @@ public class NumberOfLines {
             writer.newLine();
             lines.remove(i);
         }
-
         writer = new BufferedWriter(new FileWriter(iotTrainingFile));
         for (int i = 0; i < lines.size(); i++) {
             writer.write(lines.get(i));
             writer.newLine();
         }
-
     }
 
     public void generateNoIotFiles() throws IOException, URISyntaxException {
@@ -47,41 +40,17 @@ public class NumberOfLines {
             writer.newLine();
             lines.remove(i);
         }
-
         writer = new BufferedWriter(new FileWriter(noIotTrainingFile));
         for (int i = 0; i < lines.size(); i++) {
             writer.write(lines.get(i));
             writer.newLine();
         }
-
-    }
-
-    public void reduceInputFile(List<String> lines) throws URISyntaxException, IOException {
-        File outFile = new File(this.getClass().getResource("/stem/data/step1/class-iot.csv").toURI());
-        BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
-        writer.write("");
-        System.out.println("Size after: " + lines.size());
-        for (int i = 0; i < lines.size(); i++) {
-            writer.write(lines.get(i));
-            writer.newLine();
-        }
-    }
-
-    public void numberOfLine() throws IOException, URISyntaxException {
-        File dataDir = new File(this.getClass().getResource("/stem/data/step2").toURI());
-        for (File file : dataDir.listFiles()) {
-            File path = file.getAbsoluteFile();
-            long count = Files.lines(Paths.get(path.toString())).count();
-            System.out.println(file + " " + count);
-        }
     }
 
     public void prepareClassIotFile(String outFileName) throws URISyntaxException, IOException {
-
         File dataDir = new File(this.getClass().getResource("/stem/data/step2").toURI());
         File outFile = new File(outFileName);
         BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
-
         for (File file : dataDir.listFiles()) {
             //String fileName = file.getName();
             //String className = fileName.split("-")[1];
@@ -98,20 +67,31 @@ public class NumberOfLines {
         File iotTestInput = new File("onlp-input-step1.txt");
         File iot = new File("trainIot.csv");
         File noIot = new File("trainNoIot.csv");
-
         BufferedWriter writer = new BufferedWriter(new FileWriter(iotTestInput));
-
         List<String> iotLines = Files.readAllLines(iot.toPath());
         List<String> noIotLines = Files.readAllLines(noIot.toPath());
-
-        for (String line : iotLines){
+        for (String line : iotLines) {
             writer.write("iot " + line);
             writer.newLine();
         }
-
-        for (String line : noIotLines){
+        for (String line : noIotLines) {
             writer.write("noiot " + line);
             writer.newLine();
         }
+    }
+
+    public HashMap prepareTestDataMap() throws IOException {
+        HashMap TDMap = new HashMap();
+        File iot = new File("testIot.csv");
+        File noIot = new File("testNoIot.csv");
+        List<String> iotLines = Files.readAllLines(iot.toPath());
+        List<String> noIotLines = Files.readAllLines(noIot.toPath());
+        for (String line : iotLines) {
+            TDMap.put(line, "iot");
+        }
+        for (String line : noIotLines) {
+            TDMap.put(line, "noiot");
+        }
+        return TDMap;
     }
 }
