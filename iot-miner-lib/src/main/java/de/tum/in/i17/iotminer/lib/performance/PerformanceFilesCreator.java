@@ -9,7 +9,13 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 
-public class PreparePerformanceFiles {
+public class PerformanceFilesCreator {
+
+    private double testPercentage;
+
+    public PerformanceFilesCreator(double testPercentage) {
+        this.testPercentage = testPercentage;
+    }
 
     public void generateIotFiles() throws IOException, URISyntaxException {
         File iotTestFile = new File("testIot.csv");
@@ -17,7 +23,7 @@ public class PreparePerformanceFiles {
         File fromFile = new File(this.getClass().getResource("/stem/data/step1/class-iot.csv").toURI());
         BufferedWriter writer = new BufferedWriter(new FileWriter(iotTestFile));
         List<String> lines = Files.readAllLines(fromFile.toPath());
-        for (int i = 0; i < (lines.size() * 0.2); i++) {
+        for (int i = 0; i < (lines.size() * testPercentage); i++) {
             writer.write(lines.get(i));
             writer.newLine();
             lines.remove(i);
@@ -35,7 +41,7 @@ public class PreparePerformanceFiles {
         File fromFile = new File(this.getClass().getResource("/stem/data/step1/class-noiot.csv").toURI());
         BufferedWriter writer = new BufferedWriter(new FileWriter(noIotTestFile));
         List<String> lines = Files.readAllLines(fromFile.toPath());
-        for (int i = 0; i < (lines.size() * 0.2); i++) {
+        for (int i = 0; i < (lines.size() * testPercentage); i++) {
             writer.write(lines.get(i));
             writer.newLine();
             lines.remove(i);

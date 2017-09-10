@@ -11,7 +11,6 @@ import com.optimaize.langdetect.text.CommonTextObjectFactories;
 import com.optimaize.langdetect.text.TextObject;
 import com.optimaize.langdetect.text.TextObjectFactory;
 import de.tum.in.i17.iotminer.lib.opennlp.OpenNlpCategorizer;
-import de.tum.in.i17.iotminer.lib.weka.WekaCategorizer;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -21,6 +20,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 public class UseCaseCategorizer {
@@ -103,8 +103,8 @@ public class UseCaseCategorizer {
         return iotTweets;
     }
 
-    public HashMap classifyTweets(List<String> tweets) throws Exception {
-        HashMap classificationMap = new HashMap();
+    public Map<String, String> classifyTweets(List<String> tweets) throws Exception {
+        Map<String, String> classificationMap = new HashMap<>();
         for (String tweet : tweets) {
             String category = categorizer2.categorize(tweet);
             System.out.println(category + " : " + tweet);

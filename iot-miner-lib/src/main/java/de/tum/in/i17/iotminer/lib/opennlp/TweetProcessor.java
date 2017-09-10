@@ -1,6 +1,5 @@
 package de.tum.in.i17.iotminer.lib.opennlp;
 
-import de.tum.in.i17.iotminer.lib.util.StopWords;
 import opennlp.tools.chunker.ChunkerME;
 import opennlp.tools.chunker.ChunkerModel;
 import opennlp.tools.langdetect.Language;
@@ -54,17 +53,7 @@ public class TweetProcessor {
      * @param tweet
      */
     public void tweetClean(String tweet) {
-        // tokenizing the tweet
-        String tokens[] = tokenizer(tweet);
 
-        // removing the stopwords from the tokens
-        StopWords stopWords = new StopWords();
-        String list[] = stopWords.removeStopWords(tokens);
-
-        for (String word : list) {
-            System.out.println(word);
-        }
-        System.out.println("-----------------");
     }
 
     /**

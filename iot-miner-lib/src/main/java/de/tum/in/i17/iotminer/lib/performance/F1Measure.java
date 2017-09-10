@@ -8,15 +8,15 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 
 public class F1Measure {
     public static void main(String[] args) throws Exception {
         F1Measure f1 = new F1Measure();
-        PreparePerformanceFiles ppf = new PreparePerformanceFiles();
+        PerformanceFilesCreator ppf = new PerformanceFilesCreator(0.2);
 
         ppf.generateIotFiles();
         ppf.generateNoIotFiles();
@@ -26,8 +26,8 @@ public class F1Measure {
 
         UseCaseCategorizer useCaseCategorizer = new UseCaseCategorizer();
         List<String> iotTweets = f1.getTweets();
-        HashMap classificationMap = useCaseCategorizer.classifyTweets(iotTweets);
-        HashMap testDataMap = ppf.prepareTestDataMap();
+        Map<String, String> classificationMap = useCaseCategorizer.classifyTweets(iotTweets);
+        Map<String, String> testDataMap = ppf.prepareTestDataMap();
         f1.compareMap(classificationMap, testDataMap);
     }
 
@@ -37,16 +37,12 @@ public class F1Measure {
         List<String> iotTweets = Files.readAllLines(iot.toPath());
         List<String> noIotTweets = Files.readAllLines(noIot.toPath());
         List<String> iotTestTweets = new ArrayList<>();
-        for (String line : iotTweets) {
-            iotTestTweets.add(line);
-        }
-        for (String line : noIotTweets) {
-            iotTestTweets.add(line);
-        }
+        iotTestTweets.addAll(iotTweets);
+        iotTestTweets.addAll(noIotTweets);
         return iotTestTweets;
     }
 
-    public void compareMap(HashMap classification, HashMap original) {
+    public void compareMap(Map<String, String> classification, Map<String, String> original) {
         int truePositive = 0;
         int falsePositive = 0;
         int falseNegative = 0;
@@ -55,14 +51,14 @@ public class F1Measure {
         System.out.println(original.size());
         Iterator itCM = classification.entrySet().iterator();
         while (itCM.hasNext()) {
-            HashMap.Entry result = (HashMap.Entry) itCM.next();
-            if (original.get(result.getKey()).toString().equals("iot") && result.getValue().toString().equals("iot")) {
+            Map.Entry result = (Map.Entry) itCM.next();
+            if (original.get(result.getKey()).equals("iot") && result.getValue().equals("iot")) {
                 truePositive++;
             }
-            if (original.get(result.getKey()).toString().equals("noiot") && result.getValue().toString().equals("iot")) {
+            if (original.get(result.getKey()).equals("noiot") && result.getValue().equals("iot")) {
                 falsePositive++;
             }
-            if (original.get(result.getKey()).toString().equals("iot") && result.getValue().toString().equals("noiot")) {
+            if (original.get(result.getKey()).equals("iot") && result.getValue().equals("noiot")) {
                 falseNegative++;
             }
             //System.out.println(result.getKey() + " Classification " + result.getValue() + " Original " + original.get(result.getKey()));
