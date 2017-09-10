@@ -1,13 +1,13 @@
 package de.tum.in.i17.iotminer.lib.mallet;
 
 import cc.mallet.pipe.*;
-import cc.mallet.pipe.iterator.CsvIterator;
 import cc.mallet.topics.ParallelTopicModel;
-import cc.mallet.topics.TopicAssignment;
 import cc.mallet.topics.TopicInferencer;
 import cc.mallet.types.*;
 
 import java.io.*;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -16,10 +16,10 @@ public class TopicModeller {
     ParallelTopicModel model;
     InstanceList instances;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, URISyntaxException {
         TopicModeller modeller = new TopicModeller(10);
-        modeller.modelTopics("class-iot-mallet.txt");
-        modeller.inferTopic("singapore to launch first trial of driverless buses in jurong west selfdrivingcars iot transport smartcars");
+        modeller.modelTopics("/supervised/data/step1/class-iot.txt");
+        modeller.inferTopic("singapore to launch first trial of driverless buses in jurong west self driving cars iot transport smartcars");
     }
 
     public TopicModeller(int numberOfTopics) {
@@ -40,11 +40,15 @@ public class TopicModeller {
 
     }
 
-    public void modelTopics(String fileName) throws IOException {
+    public void modelTopics(String fileName) throws IOException, URISyntaxException {
 
-        Reader fileReader = new InputStreamReader(new FileInputStream(new File(fileName)), "UTF-8");
-        instances.addThruPipe(new CsvIterator(fileReader, Pattern.compile("^(\\S*)[\\s,]*(\\S*)[\\s,]*(.*)$"),
-                3, 2, 1)); // data, label, name fields
+      //  Reader fileReader = new InputStreamReader(new FileInputStream(new File(fileName)), "UTF-8");
+      //  instances.addThruPipe(new CsvIterator(fileReader, Pattern.compile("^(\\S*)[\\s,]*(\\S*)[\\s,]*(.*)$"),
+      //          3, 2, 1)); // data, label, name fields
+        List<String> lines = Files.readAllLines(new File(this.getClass().getResource(fileName).toURI()).toPath());
+        for (int i = 0 ; i < lines.size() ; i ++) {
+            instances.addThruPipe(new Instance(lines.get(i), null, i, null));
+        }
 
         model.addInstances(instances);
 
@@ -54,42 +58,42 @@ public class TopicModeller {
 
         // Run the model for 500 iterations and stop (this is for testing only,
         //  for real applications, use 1000 to 2000 iterations)
-        model.setNumIterations(500);
+        model.setNumIterations(100);
         model.estimate();
 
-//         Show the words and topics in the first instance
-//        // The data alphabet maps word IDs to strings
-//        Alphabet dataAlphabet = instances.getDataAlphabet();
+        // Show the words and topics in the first instance
+        // The data alphabet maps word IDs to strings
+        Alphabet dataAlphabet = instances.getDataAlphabet();
 //
 //        FeatureSequence tokens = (FeatureSequence) model.getData().get(0).instance.getData();
 //        LabelSequence topics = model.getData().get(0).topicSequence;
 //
-//        Formatter out = new Formatter(new StringBuilder(), Locale.US);
+        Formatter out = new Formatter(new StringBuilder(), Locale.US);
 //        for (int position = 0; position < tokens.getLength(); position++) {
 //            out.format("%s-%d ", dataAlphabet.lookupObject(tokens.getIndexAtPosition(position)), topics.getIndexAtPosition(position));
 //        }
 //        System.out.println(out);
 //
-//        // Estimate the topic distribution of the first instance,
-//        //  given the current Gibbs state.
-//        double[] topicDistribution = model.getTopicProbabilities(0);
-//
-//        // Get an array of sorted sets of word ID/count pairs
-//        ArrayList<TreeSet<IDSorter>> topicSortedWords = model.getSortedWords();
-//
-//        // Show top 5 words in topics with proportions for the first document
-//        for (int topic = 0; topic < model.getNumTopics(); topic++) {
-//            Iterator<IDSorter> iterator = topicSortedWords.get(topic).iterator();
-//            out = new Formatter(new StringBuilder(), Locale.US);
-//            out.format("%d\t%.3f\t", topic, topicDistribution[topic]);
-//            int rank = 0;
-//            while (iterator.hasNext() && rank < 5) {
-//                IDSorter idCountPair = iterator.next();
-//                out.format("%s (%.0f) ", dataAlphabet.lookupObject(idCountPair.getID()), idCountPair.getWeight());
-//                rank++;
-//            }
-//            System.out.println(out);
-//        }
+        // Estimate the topic distribution of the first instance,
+        //  given the current Gibbs state.
+        double[] topicDistribution = model.getTopicProbabilities(0);
+
+        // Get an array of sorted sets of word ID/count pairs
+        ArrayList<TreeSet<IDSorter>> topicSortedWords = model.getSortedWords();
+
+        // Show top 5 words in topics with proportions for the first document
+        for (int topic = 0; topic < model.getNumTopics(); topic++) {
+            Iterator<IDSorter> iterator = topicSortedWords.get(topic).iterator();
+            out = new Formatter(new StringBuilder(), Locale.US);
+            out.format("%d\t%.3f\t", topic, topicDistribution[topic]);
+            int rank = 0;
+            while (iterator.hasNext() && rank < 5) {
+                IDSorter idCountPair = iterator.next();
+                out.format("%s (%.0f) ", dataAlphabet.lookupObject(idCountPair.getID()), idCountPair.getWeight());
+                rank++;
+            }
+            System.out.println(out);
+        }
 
     }
 
