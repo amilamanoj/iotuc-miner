@@ -91,6 +91,7 @@ public class TrainingDataPreprocessor {
                 double similarity = TweetSimilarity.similarity(line, writtenLine);
                 if (similarity > 0.5) {
                     shouldWrite = false;
+                    break;
                 }
             }
             if (shouldWrite) {
