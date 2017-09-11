@@ -51,7 +51,7 @@ public class TrainingDataPreprocessor {
     public static void main(String[] args) throws IOException, SQLException, ClassNotFoundException {
         TrainingDataPreprocessor preprocessor = new TrainingDataPreprocessor();
         List<String> tweets = preprocessor.getTweets();
-        preprocessor.process(tweets, new File("/Users/amilamanoj/Development/idp/data/class-connectedcar.csv"));
+        preprocessor.process(tweets, new File("class-iot.txt"));
     }
 
     private void process(List<String> content, File target) throws IOException {
@@ -178,11 +178,7 @@ public class TrainingDataPreprocessor {
             System.out.println("Getting data ...");
             stmt = conn.createStatement();
             String sql;
-            sql = "SELECT tweet_text FROM `tweets` " +
-                    "WHERE (tweet_text like '%connected car%' or tweet_text like '%connectedcar%') " +
-                    " or (tweet_text like '%smart car%' or tweet_text like '%smartcar%') " +
-                    " or (tweet_text like '%driverless%') " +
-                    "and tweet_text like '%iot%'";
+            sql = "SELECT tweet_text FROM `tweets` where tweet_text like '% iot %' or tweet_text like '%#iot%' or tweet_text like '%internet of things%'";
             rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 tweets.add(rs.getString("tweet_text"));
