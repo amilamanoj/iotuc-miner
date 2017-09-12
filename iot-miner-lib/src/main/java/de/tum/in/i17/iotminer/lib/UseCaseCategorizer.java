@@ -25,9 +25,7 @@ import java.util.Properties;
 
 public class UseCaseCategorizer {
 
-    private Categorizer categorizer1;
-
-    private Categorizer categorizer2;
+    private Categorizer categorizer;
 
     private Properties properties;
 
@@ -36,11 +34,10 @@ public class UseCaseCategorizer {
     private TextObjectFactory textObjectFactory;
 
 
-    public UseCaseCategorizer() throws Exception {
+    public UseCaseCategorizer(Categorizer cat) throws Exception {
         properties = new Properties();
         properties.load(this.getClass().getResourceAsStream("/app.properties"));
-        //categorizer1 = new WekaCategorizer("weka-model-s1.txt");
-        categorizer2 = new OpenNlpCategorizer("onlp-model-s1.txt");
+        categorizer = cat;
         List<LanguageProfile> languageProfiles = new LanguageProfileReader().readAllBuiltIn();
         languageDetector = LanguageDetectorBuilder.create(NgramExtractors.standard())
                 .withProfiles(languageProfiles)
@@ -49,7 +46,8 @@ public class UseCaseCategorizer {
     }
 
     public static void main(String[] args) throws Exception {
-        UseCaseCategorizer useCaseCategorizer = new UseCaseCategorizer();
+        Categorizer cat = new OpenNlpCategorizer("model-s1.txt");
+        UseCaseCategorizer useCaseCategorizer = new UseCaseCategorizer(cat);
         List<String> iotTweets = useCaseCategorizer.getIotTweets();
         useCaseCategorizer.classifyTweets(iotTweets);
 
@@ -72,7 +70,7 @@ public class UseCaseCategorizer {
             rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 String tweet = rs.getString("tweet_text");
-                String category = categorizer1.categorize(tweet);
+                String category = categorizer.categorize(tweet);
                 if ("iot".equals(category)) {
                     TextObject textObject = textObjectFactory.forText(tweet);
                     String lang = "";
@@ -106,7 +104,7 @@ public class UseCaseCategorizer {
     public Map<String, String> classifyTweets(List<String> tweets) throws Exception {
         Map<String, String> classificationMap = new HashMap<>();
         for (String tweet : tweets) {
-            String category = categorizer2.categorize(tweet);
+            String category = categorizer.categorize(tweet);
             System.out.println(category + " : " + tweet);
             System.out.println("====================");
             classificationMap.put(tweet, category);

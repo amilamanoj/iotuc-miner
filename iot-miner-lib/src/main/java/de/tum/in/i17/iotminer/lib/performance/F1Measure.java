@@ -1,9 +1,16 @@
 package de.tum.in.i17.iotminer.lib.performance;
 
+import cc.mallet.util.FileUtils;
+import de.tum.in.i17.iotminer.lib.Categorizer;
 import de.tum.in.i17.iotminer.lib.UseCaseCategorizer;
 import de.tum.in.i17.iotminer.lib.opennlp.ModelTrainer;
+import de.tum.in.i17.iotminer.lib.opennlp.OpenNlpCategorizer;
+import de.tum.in.i17.iotminer.lib.weka.WekaCategorizer;
+import org.netlib.lapack.Sopgtr;
 
+import javax.xml.soap.SOAPPart;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -14,26 +21,49 @@ import java.util.Map;
 
 
 public class F1Measure {
+
+    private String useLib;
+
+    public F1Measure(String useLib) {
+        this.useLib = useLib;
+    }
+
     public static void main(String[] args) throws Exception {
-        F1Measure f1 = new F1Measure();
-        PerformanceFilesCreator ppf = new PerformanceFilesCreator(0.2);
+        Categorizer categorizer = null;
+        //F1Measure f1 = new F1Measure("weka");
+        F1Measure f1 = new F1Measure("opennlp");
+        PerformanceFilesCreator pfc = new PerformanceFilesCreator(0.2);
 
-        ppf.generateIotFiles();
-        ppf.generateNoIotFiles();
-        ppf.prepareTrainingData();
+        pfc.createDirs();
+        pfc.generateIotFiles();
+        pfc.generateNoIotFiles();
 
-        new ModelTrainer().trainModel("onlp-input-step1.txt", "onlp-model-s1.txt");
+        if (f1.useLib == "weka") {
+            pfc.generateWekaModel();
+            categorizer = new WekaCategorizer("performance/models/model-s1.txt");
+        }
 
-        UseCaseCategorizer useCaseCategorizer = new UseCaseCategorizer();
+        if (f1.useLib == "opennlp") {
+            pfc.prepareTrainingData();
+            new ModelTrainer().trainModel("performance/models/onlp-input-step1.txt", "performance/models/model-s1.txt");
+            categorizer = new OpenNlpCategorizer("performance/models/model-s1.txt");
+        }
+
+        UseCaseCategorizer useCaseCategorizer = new UseCaseCategorizer(categorizer);
         List<String> iotTweets = f1.getTweets();
         Map<String, String> classificationMap = useCaseCategorizer.classifyTweets(iotTweets);
-        Map<String, String> testDataMap = ppf.prepareTestDataMap();
+        Map<String, String> testDataMap = pfc.prepareTestDataMap();
         f1.compareMap(classificationMap, testDataMap);
+
+        pfc.deleteDir(new File("performance/models"));
+        pfc.deleteDir(new File("performance/test"));
+        pfc.deleteDir(new File("performance/train"));
+
     }
 
     public List<String> getTweets() throws URISyntaxException, IOException {
-        File iot = new File("testIot.csv");
-        File noIot = new File("testNoIot.csv");
+        File iot = new File("performance/test/test-iot.txt");
+        File noIot = new File("performance/test/test-noiot.txt");
         List<String> iotTweets = Files.readAllLines(iot.toPath());
         List<String> noIotTweets = Files.readAllLines(noIot.toPath());
         List<String> iotTestTweets = new ArrayList<>();
