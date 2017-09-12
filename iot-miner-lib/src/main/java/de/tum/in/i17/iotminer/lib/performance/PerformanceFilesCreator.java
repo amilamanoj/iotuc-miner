@@ -1,9 +1,11 @@
 package de.tum.in.i17.iotminer.lib.performance;
 
-import cc.mallet.util.FileUtils;
 import de.tum.in.i17.iotminer.lib.weka.WekaCategorizer;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.HashMap;

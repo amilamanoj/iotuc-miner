@@ -1,16 +1,12 @@
 package de.tum.in.i17.iotminer.lib.performance;
 
-import cc.mallet.util.FileUtils;
 import de.tum.in.i17.iotminer.lib.Categorizer;
 import de.tum.in.i17.iotminer.lib.UseCaseCategorizer;
 import de.tum.in.i17.iotminer.lib.opennlp.ModelTrainer;
 import de.tum.in.i17.iotminer.lib.opennlp.OpenNlpCategorizer;
 import de.tum.in.i17.iotminer.lib.weka.WekaCategorizer;
-import org.netlib.lapack.Sopgtr;
 
-import javax.xml.soap.SOAPPart;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -21,7 +17,6 @@ import java.util.Map;
 
 
 public class F1Measure {
-
     private String useLib;
 
     public F1Measure(String useLib) {
