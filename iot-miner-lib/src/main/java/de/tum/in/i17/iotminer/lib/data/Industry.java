@@ -8,7 +8,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import java.util.Set;
+
+import static javax.persistence.CascadeType.ALL;
 
 /**
  * Created by amilamanoj on 24.06.17.
@@ -24,7 +27,7 @@ public class Industry {
 
     private String description;
 
-    @ManyToMany(mappedBy = "industries")
+    @OneToMany(cascade=ALL, mappedBy="industry")
     @JsonBackReference
     private Set<UseCase> useCases;
 

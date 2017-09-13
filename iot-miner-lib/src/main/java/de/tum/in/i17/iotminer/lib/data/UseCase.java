@@ -3,14 +3,12 @@ package de.tum.in.i17.iotminer.lib.data;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import java.util.Set;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
 /**
  * Created by amilamanoj on 24.06.17.
@@ -26,10 +24,10 @@ public class UseCase {
 
     private String organization;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "usecase_industry")
+    @ManyToOne
+    @JoinColumn(name="ind_id", nullable=false)
     @JsonManagedReference
-    private Set<Industry> industries;
+    Industry industry;
 
     private String description;
 
@@ -69,12 +67,12 @@ public class UseCase {
         this.organization = organization;
     }
 
-    public Set<Industry> getIndustries() {
-        return industries;
+    public Industry getIndustry() {
+        return industry;
     }
 
-    public void setIndustries(Set<Industry> industries) {
-        this.industries = industries;
+    public void setIndustry(Industry industry) {
+        this.industry = industry;
     }
 
     public String getDescription() {
