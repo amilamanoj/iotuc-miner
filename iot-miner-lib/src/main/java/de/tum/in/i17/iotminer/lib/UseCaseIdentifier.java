@@ -1,5 +1,6 @@
 package de.tum.in.i17.iotminer.lib;
 
+import de.tum.in.i17.iotminer.lib.mallet.TopicModeller;
 import de.tum.in.i17.iotminer.lib.opennlp.OpenNlpCategorizer;
 import de.tum.in.i17.iotminer.lib.util.TweetFetcher;
 
@@ -24,9 +25,19 @@ public class UseCaseIdentifier {
                 "SELECT * FROM `tweets` where tweet_text like '% iot %' or tweet_text like '%#iot%' or tweet_text like '%internet of things%' limit 1000");
 
         Map<String, String> iotUseCases = useCaseCategorizer.getIoTUseCases(iotTweets);
-        for (String useCase : iotUseCases.values()) {
-            System.out.println(useCase);
+        Map<String, TweetFetcher.TweetInfo> tweetInfoMap = fetcher.getTweetsWithInfoFromId(iotUseCases.keySet());
+        TopicModeller topicModeller = new TopicModeller(10);
+        topicModeller.modelTopics(iotUseCases);
+        Map<Integer, String> topics = topicModeller.getTopicList();
+        System.out.println(topics);
+        System.out.println(iotUseCases.size());
+        System.out.println(iotTweets.size());
+        for (String tweetId : iotUseCases.keySet()) {
+            double[] distribution = topicModeller.getTopicDistribution(tweetId);
+            int topicId = topicModeller.getMaxIndex(distribution);
+            //System.out.println(tweetId +": "+ topicId + "(" + topics.get(topicId) + ") " + tweetInfoMap.get(tweetId).getTweetText());
         }
+
     }
 
     public Map<String, String> getIoTUseCases(Map<String, String> candidateList) throws Exception {
@@ -34,12 +45,12 @@ public class UseCaseIdentifier {
         Map<String, String> preProcessedTweets = preprocessor.preProcess(candidateList);
 
         Map<String, String> iotUseCases = new HashMap<>();
-        for (Map.Entry<String, String> candidate : preProcessedTweets.entrySet()) {
-            String category = categorizer.categorize(candidate.getValue());
+        preProcessedTweets.forEach((key, value) -> {
+            String category = categorizer.categorize(value);
             if ("iot".equals(category)) {
-                iotUseCases.put(candidate.getKey(), candidate.getValue());
+                iotUseCases.put(key, value);
             }
-        }
+        });
         return iotUseCases;
     }
 

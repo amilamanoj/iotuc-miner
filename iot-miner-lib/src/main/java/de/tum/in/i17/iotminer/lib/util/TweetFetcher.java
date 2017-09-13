@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,7 +59,49 @@ public class TweetFetcher {
         }
     }
 
-    class TweetInfo {
+
+    public Map<String, TweetInfo> getTweetsWithInfoFromId(Collection<String> tweetIds) throws ClassNotFoundException, SQLException, IOException {
+        Map<String, TweetInfo> tweets = new HashMap<>();
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            //Register JDBC driver
+            Class.forName(properties.getProperty("jdbc.driver"));
+            //Open connection
+            System.out.println("Connecting to database...");
+            conn = DriverManager.getConnection(properties.getProperty("db.url"),
+                                               properties.getProperty("db.user"), properties.getProperty("db.pass"));
+            // Execute a query
+            System.out.println("Getting data ...");
+            stmt = conn.createStatement();
+            String sql = "select * from tweets where tweet_id in (" + String.join(",", tweetIds) +")";
+
+            rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                long tweetId = rs.getLong("tweet_id");
+                String tweetText = rs.getString("tweet_text");
+                Date createdAt = rs.getDate("created_at");
+                String screenName = rs.getString("screen_name");
+                TweetInfo info = new TweetInfo(String.valueOf(tweetId), tweetText, createdAt, screenName);
+
+                tweets.put(String.valueOf(tweetId), info);
+            }
+            return tweets;
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (stmt != null) {
+                stmt.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        }
+    }
+
+    public class TweetInfo {
         private String tweetId;
 
         private String tweetText;

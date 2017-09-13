@@ -53,8 +53,12 @@ public class WekaCategorizer implements Categorizer {
     }
 
     @Override
-    public String categorize(String tweet) throws Exception {
-        return wekaClassifier.classifyMessage(tweet);
+    public String categorize(String tweet)  {
+        try {
+            return wekaClassifier.classifyMessage(tweet);
+        } catch (Exception e) {
+            return "n/a";
+        }
     }
 
     public void train() throws IOException {
