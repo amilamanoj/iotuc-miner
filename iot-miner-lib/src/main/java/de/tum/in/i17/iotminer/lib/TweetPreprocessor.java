@@ -10,6 +10,7 @@ import com.optimaize.langdetect.profiles.LanguageProfileReader;
 import com.optimaize.langdetect.text.CommonTextObjectFactories;
 import com.optimaize.langdetect.text.TextObject;
 import com.optimaize.langdetect.text.TextObjectFactory;
+import de.tum.in.i17.iotminer.lib.util.TweetFetcher;
 import de.tum.in.i17.iotminer.lib.util.TweetSimilarity;
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
@@ -21,41 +22,35 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.*;
 
-public class TrainingDataPreprocessor {
+public class TweetPreprocessor {
 
     //build language detector:
     private LanguageDetector languageDetector;
     //create a text object factory
     private TextObjectFactory textObjectFactory;
 
-    private Properties properties;
 
 
-    public TrainingDataPreprocessor() throws IOException {
+    public TweetPreprocessor() throws IOException {
         List<LanguageProfile> languageProfiles = new LanguageProfileReader().readAllBuiltIn();
         languageDetector = LanguageDetectorBuilder.create(NgramExtractors.standard())
                 .withProfiles(languageProfiles)
                 .build();
         textObjectFactory = CommonTextObjectFactories.forDetectingShortCleanText();
-        properties = new Properties();
-        properties.load(this.getClass().getResourceAsStream("/app.properties"));
     }
 
     public static void main(String[] args) throws IOException, SQLException, ClassNotFoundException {
-        TrainingDataPreprocessor preprocessor = new TrainingDataPreprocessor();
-        Map<String, String> tweets = preprocessor.getTweets("SELECT * FROM `tweets` where tweet_text like '% iot %' or tweet_text like '%#iot%' or tweet_text like '%internet of things%' limit 1000");
+        TweetFetcher fetcher = new TweetFetcher();
+        Map<String, String> tweets = fetcher.getTweets("SELECT * FROM `tweets` where tweet_text like '% iot %' or tweet_text like '%#iot%' or tweet_text like '%internet of things%' limit 1000");
+        TweetPreprocessor preprocessor = new TweetPreprocessor();
         Map<String, String> preProcessedTweets = preprocessor.preProcess(tweets);
         preprocessor.writeToFile(preProcessedTweets, new File("class-iot.txt"));
     }
 
-    private Map<String, String> preProcess(Map<String, String> content) throws IOException {
+    public Map<String, String> preProcess(Map<String, String> content) throws IOException {
 
         System.out.println("Processing content: " + content.size());
         TreeMap<String, String> sortedLines = new TreeMap<>();
@@ -169,106 +164,6 @@ public class TrainingDataPreprocessor {
             return res.get().getLanguage();
         } else {
             return "n/a";
-        }
-    }
-
-    private Map<String, String> getTweets(String query) throws ClassNotFoundException, SQLException, IOException {
-        Map<String, String> tweets = new HashMap<>();
-        Connection conn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
-        try {
-            //Register JDBC driver
-            Class.forName(properties.getProperty("jdbc.driver"));
-            //Open connection
-            System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(properties.getProperty("db.url"),
-                                               properties.getProperty("db.user"), properties.getProperty("db.pass"));
-            // Execute a query
-            System.out.println("Getting data ...");
-            stmt = conn.createStatement();
-            String sql = query;
-
-            rs = stmt.executeQuery(sql);
-            while (rs.next()) {
-                long tweetId = rs.getLong("tweet_id");
-                String tweetText = rs.getString("tweet_text");
-                tweets.put(String.valueOf(tweetId), tweetText);
-            }
-            System.out.println("Results: " + tweets.size());
-            return tweets;
-        } finally {
-            if (rs != null) {
-                rs.close();
-            }
-            if (stmt != null) {
-                stmt.close();
-            }
-            if (conn != null) {
-                conn.close();
-            }
-        }
-    }
-
-    class TweetInfo {
-        private String tweetId;
-
-        private String tweetText;
-
-        private Date createdAt;
-
-        private String screenName;
-
-        private String processedTweet;
-
-        public TweetInfo() {
-        }
-
-        public TweetInfo(String tweetId, String tweetText, Date createdAt, String screenName) {
-            this.tweetId = tweetId;
-            this.tweetText = tweetText;
-            this.createdAt = createdAt;
-            this.screenName = screenName;
-        }
-
-        public String getTweetId() {
-            return tweetId;
-        }
-
-        public void setTweetId(String tweetId) {
-            this.tweetId = tweetId;
-        }
-
-        public String getTweetText() {
-            return tweetText;
-        }
-
-        public void setTweetText(String tweetText) {
-            this.tweetText = tweetText;
-        }
-
-        public Date getCreatedAt() {
-            return createdAt;
-        }
-
-        public void setCreatedAt(Date createdAt) {
-            this.createdAt = createdAt;
-        }
-
-        public String getScreenName() {
-            return screenName;
-        }
-
-        public void setScreenName(String screenName) {
-            this.screenName = screenName;
-        }
-
-        public String getProcessedTweet() {
-            return processedTweet;
-        }
-
-        public void setProcessedTweet(String processedTweet) {
-            this.processedTweet = processedTweet;
         }
     }
 

@@ -1,7 +1,7 @@
 package de.tum.in.i17.iotminer.lib.performance;
 
 import de.tum.in.i17.iotminer.lib.Categorizer;
-import de.tum.in.i17.iotminer.lib.UseCaseCategorizer;
+import de.tum.in.i17.iotminer.lib.UseCaseIdentifier;
 import de.tum.in.i17.iotminer.lib.opennlp.ModelTrainer;
 import de.tum.in.i17.iotminer.lib.opennlp.OpenNlpCategorizer;
 import de.tum.in.i17.iotminer.lib.weka.WekaCategorizer;
@@ -44,9 +44,9 @@ public class F1Measure {
             categorizer = new OpenNlpCategorizer("performance/models/model-s1.txt");
         }
 
-        UseCaseCategorizer useCaseCategorizer = new UseCaseCategorizer(categorizer);
+        UseCaseIdentifier useCaseIdentifier = new UseCaseIdentifier(categorizer);
         List<String> iotTweets = f1.getTweets();
-        Map<String, String> classificationMap = useCaseCategorizer.classifyTweets(iotTweets);
+        Map<String, String> classificationMap = useCaseIdentifier.classifyTweets(iotTweets);
         Map<String, String> testDataMap = pfc.prepareTestDataMap();
         f1.compareMap(classificationMap, testDataMap);
 
