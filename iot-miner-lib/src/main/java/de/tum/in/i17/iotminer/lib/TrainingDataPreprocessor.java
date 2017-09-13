@@ -50,60 +50,69 @@ public class TrainingDataPreprocessor {
 
     public static void main(String[] args) throws IOException, SQLException, ClassNotFoundException {
         TrainingDataPreprocessor preprocessor = new TrainingDataPreprocessor();
-        List<String> tweets = preprocessor.getTweets();
-        preprocessor.process(tweets, new File("class-iot.txt"));
+        Map<String, String> tweets = preprocessor.getTweets("SELECT * FROM `tweets` where tweet_text like '% iot %' or tweet_text like '%#iot%' or tweet_text like '%internet of things%' limit 1000");
+        Map<String, String> preProcessedTweets = preprocessor.preProcess(tweets);
+        preprocessor.writeToFile(preProcessedTweets, new File("class-iot.txt"));
     }
 
-    private void process(List<String> content, File target) throws IOException {
+    private Map<String, String> preProcess(Map<String, String> content) throws IOException {
 
         System.out.println("Processing content: " + content.size());
-        TreeSet<String> sortedLines = new TreeSet<>();
+        TreeMap<String, String> sortedLines = new TreeMap<>();
 
-        for (String line: content) {
-            if (line.contains("??????")) {
+        for (Map.Entry<String, String> line : content.entrySet()) {
+            if (line.getValue().contains("??????")) {
                 continue;
             }
-            String cleanedLine = cleanTweet(line);
+            String cleanedLine = cleanTweet(line.getValue());
 
-            if (cleanedLine.length() < 80) {
+            if (cleanedLine.length() < 70) {
                 continue;
             }
 
-            String lang =  detectLanguage(cleanedLine);
+            String lang = detectLanguage(cleanedLine);
             if (!"en".equals(lang)) {
                 continue;
             }
 
             String resultLine = performSWRAndStemming(cleanedLine);
-            sortedLines.add(resultLine);
+            sortedLines.put(line.getKey(), resultLine);
         }
         System.out.println("After removing short and non-english text: " + sortedLines.size());
 
-        BufferedWriter writer = new BufferedWriter(new FileWriter(target));
+        Map<String, String> linesToWrite = new HashMap<>();
+        Map.Entry<String, String> firstLine = sortedLines.pollFirstEntry();
+        linesToWrite.put(firstLine.getKey(), firstLine.getValue());
 
-        List<String> writtenLines = new ArrayList<>();
-        String firstLine = sortedLines.pollFirst();
-        writer.write(firstLine);
-        writtenLines.add(firstLine);
-        for (String line : sortedLines) {
+        for (Map.Entry<String, String> line : sortedLines.entrySet()) {
             boolean shouldWrite = true;
-            for (String writtenLine : writtenLines) {
-                double similarity = TweetSimilarity.similarity(line, writtenLine);
+            for (String writtenLine : linesToWrite.values()) {
+                double similarity = TweetSimilarity.similarity(line.getValue(), writtenLine);
                 if (similarity > 0.5) {
                     shouldWrite = false;
                     break;
                 }
             }
             if (shouldWrite) {
-                writer.write(line);
-                writer.newLine();
-                writtenLines.add(line);
+                linesToWrite.put(line.getKey(), line.getValue());
             }
+        }
+        System.out.printf("After removing duplicates: " + linesToWrite.size());
+
+        return linesToWrite;
+
+    }
+
+    private void writeToFile(Map<String, String> linesToWrite, File target) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(target));
+
+        for (Map.Entry<String, String> line : linesToWrite.entrySet()) {
+            String lineToWrite = String.join(",", line.getKey(), line.getValue());
+            writer.write(lineToWrite);
+            writer.newLine();
         }
         writer.flush();
         writer.close();
-
-        System.out.printf("After removing duplicates: " + writtenLines.size());
     }
 
     private String performSWRAndStemming(String cleanedLine) {
@@ -148,14 +157,14 @@ public class TrainingDataPreprocessor {
         newLine = newLine.replaceAll("… ", "");
         newLine = newLine.replaceAll("\\.\\.\\. ", "");
         newLine = newLine.replaceAll(" +", " ");
-        newLine = newLine.replaceAll("[0-9]","");
+        newLine = newLine.replaceAll("[0-9]", "");
         return newLine;
     }
 
     private String detectLanguage(String tweet) throws IOException {
         //query:
         TextObject textObject = textObjectFactory.forText(tweet);
-        Optional<LdLocale>  res = languageDetector.detect(textObject);
+        Optional<LdLocale> res = languageDetector.detect(textObject);
         if (res.isPresent()) {
             return res.get().getLanguage();
         } else {
@@ -163,8 +172,8 @@ public class TrainingDataPreprocessor {
         }
     }
 
-    private  List<String>  getTweets() throws ClassNotFoundException, SQLException, IOException {
-        List<String> tweets = new ArrayList<>();
+    private Map<String, String> getTweets(String query) throws ClassNotFoundException, SQLException, IOException {
+        Map<String, String> tweets = new HashMap<>();
         Connection conn = null;
         Statement stmt = null;
         ResultSet rs = null;
@@ -178,11 +187,13 @@ public class TrainingDataPreprocessor {
             // Execute a query
             System.out.println("Getting data ...");
             stmt = conn.createStatement();
-            String sql;
-            sql = "SELECT tweet_text FROM `tweets` where tweet_text like '% iot %' or tweet_text like '%#iot%' or tweet_text like '%internet of things%'";
+            String sql = query;
+
             rs = stmt.executeQuery(sql);
             while (rs.next()) {
-                tweets.add(rs.getString("tweet_text"));
+                long tweetId = rs.getLong("tweet_id");
+                String tweetText = rs.getString("tweet_text");
+                tweets.put(String.valueOf(tweetId), tweetText);
             }
             System.out.println("Results: " + tweets.size());
             return tweets;
@@ -196,6 +207,68 @@ public class TrainingDataPreprocessor {
             if (conn != null) {
                 conn.close();
             }
+        }
+    }
+
+    class TweetInfo {
+        private String tweetId;
+
+        private String tweetText;
+
+        private Date createdAt;
+
+        private String screenName;
+
+        private String processedTweet;
+
+        public TweetInfo() {
+        }
+
+        public TweetInfo(String tweetId, String tweetText, Date createdAt, String screenName) {
+            this.tweetId = tweetId;
+            this.tweetText = tweetText;
+            this.createdAt = createdAt;
+            this.screenName = screenName;
+        }
+
+        public String getTweetId() {
+            return tweetId;
+        }
+
+        public void setTweetId(String tweetId) {
+            this.tweetId = tweetId;
+        }
+
+        public String getTweetText() {
+            return tweetText;
+        }
+
+        public void setTweetText(String tweetText) {
+            this.tweetText = tweetText;
+        }
+
+        public Date getCreatedAt() {
+            return createdAt;
+        }
+
+        public void setCreatedAt(Date createdAt) {
+            this.createdAt = createdAt;
+        }
+
+        public String getScreenName() {
+            return screenName;
+        }
+
+        public void setScreenName(String screenName) {
+            this.screenName = screenName;
+        }
+
+        public String getProcessedTweet() {
+            return processedTweet;
+        }
+
+        public void setProcessedTweet(String processedTweet) {
+            this.processedTweet = processedTweet;
         }
     }
 
