@@ -4,11 +4,16 @@ package de.tum.in.i17.iotminer.lib.data;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+
+import java.util.Date;
+
+import static javax.persistence.CascadeType.ALL;
 
 /**
  * Created by amilamanoj on 24.06.17.
@@ -22,12 +27,10 @@ public class UseCase {
 
     private String name;
 
-    private String organization;
-
-    @ManyToOne
-    @JoinColumn(name="ind_id", nullable=false)
+    @ManyToOne(fetch = FetchType.EAGER, cascade=ALL)
+    @JoinColumn(name="ind_id")
     @JsonManagedReference
-    Industry industry;
+    private Industry industry;
 
     private String description;
 
@@ -35,12 +38,17 @@ public class UseCase {
 
     private String tweet;
 
+    private String tweetId;
+
+    private Date createdAt;
+
+    private String screenName;
+
     public UseCase() {
     }
 
-    public UseCase(String name, String organization) {
+    public UseCase(String name) {
         this.name = name;
-        this.organization = organization;
     }
 
     public Long getId() {
@@ -57,14 +65,6 @@ public class UseCase {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getOrganization() {
-        return organization;
-    }
-
-    public void setOrganization(String organization) {
-        this.organization = organization;
     }
 
     public Industry getIndustry() {
@@ -97,5 +97,29 @@ public class UseCase {
 
     public void setTweet(String tweet) {
         this.tweet = tweet;
+    }
+
+    public String getTweetId() {
+        return tweetId;
+    }
+
+    public void setTweetId(String tweetId) {
+        this.tweetId = tweetId;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getScreenName() {
+        return screenName;
+    }
+
+    public void setScreenName(String screenName) {
+        this.screenName = screenName;
     }
 }

@@ -9,5 +9,5 @@ import java.util.List;
  */
 public interface UseCaseRepository extends CrudRepository<UseCase, Long> {
 
-    List<UseCase> findByIndustries_Name(String name);
+    List<UseCase> findByIndustry_Name(String name);
 }

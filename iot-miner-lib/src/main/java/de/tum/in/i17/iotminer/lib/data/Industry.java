@@ -4,10 +4,8 @@ package de.tum.in.i17.iotminer.lib.data;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import java.util.Set;
 
@@ -20,23 +18,17 @@ import static javax.persistence.CascadeType.ALL;
 public class Industry {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
     private String name;
 
-    private String description;
-
-    @OneToMany(cascade=ALL, mappedBy="industry")
+    @OneToMany(cascade=ALL, mappedBy = "industry", fetch = FetchType.EAGER)
     @JsonBackReference
     private Set<UseCase> useCases;
 
-    public Industry() {
-    }
-
-    public Industry(String name, String description) {
+    public Industry(Integer id, String name) {
+        this.id = id;
         this.name = name;
-        this.description = description;
     }
 
     public Integer getId() {
@@ -53,14 +45,6 @@ public class Industry {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public Set<UseCase> getUseCases() {

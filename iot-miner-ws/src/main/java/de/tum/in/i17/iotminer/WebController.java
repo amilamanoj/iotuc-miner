@@ -76,7 +76,7 @@ public class WebController {
         List<UseCase> useCaseList = new ArrayList<>();
         Iterable<UseCase> useCaseIterable;
         if (industry != null) {
-            useCaseIterable = useCaseRepository.findByIndustries_Name(industry);
+            useCaseIterable = useCaseRepository.findByIndustry_Name(industry);
         } else {
             useCaseIterable = useCaseRepository.findAll();
         }
