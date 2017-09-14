@@ -36,6 +36,7 @@ public class UseCaseIdentifier {
             double[] distribution = topicModeller.getTopicDistribution(tweetId);
             int topicId = topicModeller.getMaxIndex(distribution);
             //System.out.println(tweetId +": "+ topicId + "(" + topics.get(topicId) + ") " + tweetInfoMap.get(tweetId).getTweetText());
+            tweetInfoMap.get(tweetId).setTopicId(topicId);
         }
 
     }

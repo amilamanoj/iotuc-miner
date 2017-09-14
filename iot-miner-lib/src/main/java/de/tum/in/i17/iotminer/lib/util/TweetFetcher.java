@@ -101,6 +101,62 @@ public class TweetFetcher {
         }
     }
 
+    public void saveTopics(Map<Integer, String> topics) throws ClassNotFoundException, SQLException {
+        Connection conn = null;
+        Statement stmt = null;
+        int res;
+        try {
+            //Register JDBC driver
+            Class.forName(properties.getProperty("jdbc.driver"));
+            //Open connection
+            System.out.println("Connecting to database...");
+            conn = DriverManager.getConnection(properties.getProperty("db.url"),
+                                               properties.getProperty("db.user"), properties.getProperty("db.pass"));
+            // Execute a query
+            System.out.println("Getting data ...");
+            for (Map.Entry<Integer, String> topic : topics.entrySet()) {
+                stmt = conn.createStatement();
+                String sql = "insert into industry (id, name) values (" + topic.getKey() + "," + topic.getValue() + ")";
+                stmt.executeUpdate(sql);
+                stmt.close();
+            }
+        } finally {
+            if (conn != null) {
+                conn.close();
+            }
+        }
+    }
+
+
+    public void saveUseCases(Map<String, TweetFetcher.TweetInfo> tweetInfoMap) throws ClassNotFoundException, SQLException {
+        Connection conn = null;
+        Statement stmt = null;
+        int res;
+        try {
+            //Register JDBC driver
+            Class.forName(properties.getProperty("jdbc.driver"));
+            //Open connection
+            System.out.println("Connecting to database...");
+            conn = DriverManager.getConnection(properties.getProperty("db.url"),
+                                               properties.getProperty("db.user"), properties.getProperty("db.pass"));
+            // Execute a query
+            System.out.println("Getting data ...");
+            for (TweetInfo info : tweetInfoMap.values()) {
+                stmt = conn.createStatement();
+                String sql = "insert into use_case (created_at, ind_id, screen_name, tweet, tweet_id) values ("
+                        + info.getCreatedAt() + "," + info.getTopicId()+ "," + info.getScreenName()
+                        + info.getTweetText() + "," + info.getTweetId()
+                        + ")";
+                stmt.executeUpdate(sql);
+                stmt.close();
+            }
+        } finally {
+            if (conn != null) {
+                conn.close();
+            }
+        }
+    }
+
     public class TweetInfo {
         private String tweetId;
 
@@ -111,6 +167,8 @@ public class TweetFetcher {
         private String screenName;
 
         private String processedTweet;
+
+        private int topicId;
 
         public TweetInfo() {
         }
@@ -160,6 +218,14 @@ public class TweetFetcher {
 
         public void setProcessedTweet(String processedTweet) {
             this.processedTweet = processedTweet;
+        }
+
+        public int getTopicId() {
+            return topicId;
+        }
+
+        public void setTopicId(int topicId) {
+            this.topicId = topicId;
         }
     }
 }
