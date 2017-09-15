@@ -26,6 +26,9 @@ public class Industry {
     @JsonBackReference
     private Set<UseCase> useCases;
 
+    public Industry() {
+    }
+
     public Industry(Integer id, String name) {
         this.id = id;
         this.name = name;
