@@ -3,6 +3,7 @@ package de.tum.in.i17.iotminer.lib.util;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -113,10 +114,10 @@ public class TweetFetcher {
             conn = DriverManager.getConnection(properties.getProperty("db.url"),
                                                properties.getProperty("db.user"), properties.getProperty("db.pass"));
             // Execute a query
-            System.out.println("Getting data ...");
+            System.out.println("Saving topics ...");
             for (Map.Entry<Integer, String> topic : topics.entrySet()) {
                 stmt = conn.createStatement();
-                String sql = "insert into industry (id, name) values (" + topic.getKey() + "," + topic.getValue() + ")";
+                String sql = "insert into industry (id, name) values ('" + topic.getKey() + "','" + topic.getValue() + "')";
                 stmt.executeUpdate(sql);
                 stmt.close();
             }
@@ -130,7 +131,7 @@ public class TweetFetcher {
 
     public void saveUseCases(Map<String, TweetFetcher.TweetInfo> tweetInfoMap) throws ClassNotFoundException, SQLException {
         Connection conn = null;
-        Statement stmt = null;
+        PreparedStatement preparedStatement = null;
         int res;
         try {
             //Register JDBC driver
@@ -140,15 +141,19 @@ public class TweetFetcher {
             conn = DriverManager.getConnection(properties.getProperty("db.url"),
                                                properties.getProperty("db.user"), properties.getProperty("db.pass"));
             // Execute a query
-            System.out.println("Getting data ...");
+            System.out.println("Saving use cases ...");
+            String sql = "insert into use_case (created_at, ind_id, screen_name, tweet, tweet_id) values (?,?,?,?,?)";
             for (TweetInfo info : tweetInfoMap.values()) {
-                stmt = conn.createStatement();
-                String sql = "insert into use_case (created_at, ind_id, screen_name, tweet, tweet_id) values ("
-                        + info.getCreatedAt() + "," + info.getTopicId()+ "," + info.getScreenName()
-                        + info.getTweetText() + "," + info.getTweetId()
-                        + ")";
-                stmt.executeUpdate(sql);
-                stmt.close();
+                preparedStatement = conn.prepareStatement(sql);
+                preparedStatement.setDate(1, new java.sql.Date(info.getCreatedAt().getTime()));
+                preparedStatement.setInt(2,info.getTopicId());
+                preparedStatement.setString(3,info.getScreenName());
+                preparedStatement.setString(4, info.getTweetText());
+                preparedStatement.setString(5,info.getTweetId());
+
+
+                preparedStatement.executeUpdate();
+                preparedStatement.close();
             }
         } finally {
             if (conn != null) {

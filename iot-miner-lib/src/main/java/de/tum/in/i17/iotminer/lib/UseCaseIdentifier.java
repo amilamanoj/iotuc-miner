@@ -25,7 +25,7 @@ public class UseCaseIdentifier {
                 "SELECT * FROM `tweets` where tweet_text like '% iot %' or tweet_text like '%#iot%' or tweet_text like '%internet of things%' limit 1000");
 
         Map<String, String> iotUseCases = useCaseCategorizer.getIoTUseCases(iotTweets);
-        Map<String, TweetFetcher.TweetInfo> tweetInfoMap = fetcher.getTweetsWithInfoFromId(iotUseCases.keySet());
+        Map<String, TweetFetcher.TweetInfo> useCaseInfoMap = fetcher.getTweetsWithInfoFromId(iotUseCases.keySet());
         TopicModeller topicModeller = new TopicModeller(10);
         topicModeller.modelTopics(iotUseCases);
         Map<Integer, String> topics = topicModeller.getTopicList();
@@ -36,8 +36,10 @@ public class UseCaseIdentifier {
             double[] distribution = topicModeller.getTopicDistribution(tweetId);
             int topicId = topicModeller.getMaxIndex(distribution);
             //System.out.println(tweetId +": "+ topicId + "(" + topics.get(topicId) + ") " + tweetInfoMap.get(tweetId).getTweetText());
-            tweetInfoMap.get(tweetId).setTopicId(topicId);
+            useCaseInfoMap.get(tweetId).setTopicId(topicId);
         }
+        fetcher.saveTopics(topics);
+        fetcher.saveUseCases(useCaseInfoMap);
 
     }
 
