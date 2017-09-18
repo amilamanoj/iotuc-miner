@@ -9,5 +9,7 @@ import java.util.List;
  */
 public interface UseCaseRepository extends CrudRepository<UseCase, Long> {
 
+    List<UseCase> findByIndustry_Id(Integer id);
+
     List<UseCase> findByIndustry_Name(String name);
 }
