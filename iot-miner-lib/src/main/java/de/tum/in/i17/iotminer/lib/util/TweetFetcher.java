@@ -12,10 +12,18 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TweetFetcher {
 
     private Properties properties;
+    // Pattern for recognizing a URL, based off RFC 3986
+    private static final Pattern urlPattern = Pattern.compile(
+            "(?:^|[\\W])((ht|f)tp(s?):\\/\\/|www\\.)"
+                    + "(([\\w\\-]+\\.){1,}?([\\w\\-.~]+\\/?)*"
+                    + "[\\p{Alnum}.,%_=?&#\\-+()\\[\\]\\*$~@!:/{};']*)",
+            Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
 
     public TweetFetcher() throws IOException {
         properties = new Properties();
@@ -104,7 +112,7 @@ public class TweetFetcher {
 
     public void saveTopics(Map<Integer, String> topics) throws ClassNotFoundException, SQLException {
         Connection conn = null;
-        Statement stmt = null;
+        PreparedStatement preparedStatement = null;
         int res;
         try {
             //Register JDBC driver
@@ -115,11 +123,13 @@ public class TweetFetcher {
                                                properties.getProperty("db.user"), properties.getProperty("db.pass"));
             // Execute a query
             System.out.println("Saving topics ...");
+            String sql = "insert into industry (id, name) values (?,?)";
             for (Map.Entry<Integer, String> topic : topics.entrySet()) {
-                stmt = conn.createStatement();
-                String sql = "insert into industry (id, name) values ('" + topic.getKey() + "','" + topic.getValue() + "')";
-                stmt.executeUpdate(sql);
-                stmt.close();
+                preparedStatement = conn.prepareStatement(sql);
+                preparedStatement.setString(1, String.valueOf(topic.getKey()));
+                preparedStatement.setString(2, topic.getValue());
+                preparedStatement.executeUpdate();
+                preparedStatement.close();
             }
         } finally {
             if (conn != null) {
@@ -142,7 +152,7 @@ public class TweetFetcher {
                                                properties.getProperty("db.user"), properties.getProperty("db.pass"));
             // Execute a query
             System.out.println("Saving use cases ...");
-            String sql = "insert into use_case (created_at, ind_id, screen_name, tweet, tweet_id) values (?,?,?,?,?)";
+            String sql = "insert into use_case (created_at, ind_id, screen_name, tweet, tweet_id, website) values (?,?,?,?,?,?)";
             for (TweetInfo info : tweetInfoMap.values()) {
                 preparedStatement = conn.prepareStatement(sql);
                 preparedStatement.setDate(1, new java.sql.Date(info.getCreatedAt().getTime()));
@@ -150,7 +160,7 @@ public class TweetFetcher {
                 preparedStatement.setString(3,info.getScreenName());
                 preparedStatement.setString(4, info.getTweetText());
                 preparedStatement.setString(5,info.getTweetId());
-
+                preparedStatement.setString(6,getUrl(info.getTweetText()));
 
                 preparedStatement.executeUpdate();
                 preparedStatement.close();
@@ -160,6 +170,17 @@ public class TweetFetcher {
                 conn.close();
             }
         }
+    }
+
+    private String getUrl(String tweet) {
+        Matcher matcher = urlPattern.matcher(tweet);
+        while (matcher.find()) {
+            int matchStart = matcher.start(1);
+            int matchEnd = matcher.end();
+            // now you have the offsets of a URL match
+            return tweet.substring(matchStart, matchEnd);
+        }
+        return "";
     }
 
     public class TweetInfo {

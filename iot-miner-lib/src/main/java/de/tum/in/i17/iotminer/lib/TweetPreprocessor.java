@@ -126,7 +126,7 @@ public class TweetPreprocessor {
         for (String token : nonStopWords) {
             stemmedWords.add(stemmer.stem(token).toString());
         }
-        return String.join(" ", stemmedWords);
+        return String.join(" ", nonStopWords);
     }
 
     private String cleanTweet(String line) {
