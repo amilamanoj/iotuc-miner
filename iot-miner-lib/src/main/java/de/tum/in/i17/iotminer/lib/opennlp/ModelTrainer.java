@@ -5,10 +5,13 @@ import opennlp.tools.doccat.DoccatModel;
 import opennlp.tools.doccat.DocumentCategorizerME;
 import opennlp.tools.doccat.DocumentSample;
 import opennlp.tools.doccat.DocumentSampleStream;
+import opennlp.tools.tokenize.WhitespaceTokenizer;
 import opennlp.tools.util.MarkableFileInputStreamFactory;
 import opennlp.tools.util.ObjectStream;
 import opennlp.tools.util.PlainTextByLineStream;
 import opennlp.tools.util.TrainingParameters;
+import weka.core.stopwords.AbstractStopwords;
+import weka.core.stopwords.Rainbow;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
@@ -19,6 +22,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ModelTrainer {
@@ -61,6 +65,7 @@ public class ModelTrainer {
         File dataDir = new File(this.getClass().getResource("/supervised/data/step2").toURI());
         File outFile = new File(outFileName);
         BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
+        AbstractStopwords rainbow = new Rainbow();
 
         for (File file : dataDir.listFiles()) {
             String fileName = file.getName();
@@ -68,7 +73,14 @@ public class ModelTrainer {
             //className = className.substring(0, className.length() - 4);
             List<String> lines = Files.readAllLines(file.toPath());
             for (String line : lines) {
-                writer.write("iot " + line);
+                String[] tokens = WhitespaceTokenizer.INSTANCE.tokenize(line);
+                List<String> nonStopWords = new ArrayList<>();
+                for (String token : tokens) {
+                    if (!rainbow.isStopword(token)) {
+                        nonStopWords.add(token);
+                    }
+                }
+                writer.write("iot " + String.join(" ", nonStopWords));
                 writer.newLine();
             }
         }
