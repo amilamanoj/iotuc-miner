@@ -2,7 +2,7 @@ package de.tum.in.i17.iotminer.lib.performance;
 
 import de.tum.in.i17.iotminer.lib.Categorizer;
 import de.tum.in.i17.iotminer.lib.UseCaseIdentifier;
-import de.tum.in.i17.iotminer.lib.opennlp.ModelTrainer;
+import de.tum.in.i17.iotminer.lib.opennlp.OnlpModelTrainer;
 import de.tum.in.i17.iotminer.lib.opennlp.OpenNlpCategorizer;
 import de.tum.in.i17.iotminer.lib.weka.WekaCategorizer;
 
@@ -40,7 +40,7 @@ public class F1Measure {
 
         if (f1.useLib == "opennlp") {
             pfc.prepareTrainingData();
-            new ModelTrainer().trainModel("performance/models/onlp-input-step1.txt", "performance/models/model-s1.txt");
+            new OnlpModelTrainer().trainModel("performance/models/onlp-input-step1.txt", "performance/models/model-s1.txt");
             categorizer = new OpenNlpCategorizer("performance/models/model-s1.txt");
         }
 

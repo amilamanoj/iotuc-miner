@@ -23,7 +23,12 @@ public class TopicModeller {
     public static void main(String[] args) throws IOException, URISyntaxException {
         TopicModeller modeller = new TopicModeller(10);
         List<String> lines = Files.readAllLines(new File(TopicModeller.class.getResource("/supervised/data/step1/class-iot.txt").toURI()).toPath());
-        //modeller.modelTopics(lines);
+        Map<String, String> tweetMap = new HashMap<>();
+        for (int x = 0 ; x < lines.size() ; x++) {
+            tweetMap.put(String.valueOf(x), lines.get(x));
+        }
+        modeller.modelTopics(tweetMap);
+        modeller.getTopicList();
         modeller.inferTopic("singapore to launch first trial of driverless buses in jurong west self driving cars iot transport smartcars");
     }
 
@@ -113,7 +118,7 @@ public class TopicModeller {
             int rank = 0;
             while (iterator.hasNext() && rank < 5) {
                 IDSorter idCountPair = iterator.next();
-                out.format("%s (%.0f) ", dataAlphabet.lookupObject(idCountPair.getID()), idCountPair.getWeight());
+                out.format("%s:%.0f ", dataAlphabet.lookupObject(idCountPair.getID()), idCountPair.getWeight());
                 rank++;
             }
             topicMap.put(topic, out.toString());
