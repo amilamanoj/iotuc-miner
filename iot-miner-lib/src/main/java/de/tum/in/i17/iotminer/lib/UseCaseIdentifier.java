@@ -3,6 +3,7 @@ package de.tum.in.i17.iotminer.lib;
 import de.tum.in.i17.iotminer.lib.mallet.TopicModeller;
 import de.tum.in.i17.iotminer.lib.opennlp.OpenNlpCategorizer;
 import de.tum.in.i17.iotminer.lib.util.TweetFetcher;
+import de.tum.in.i17.iotminer.lib.weka.WekaCategorizer;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,10 +20,10 @@ public class UseCaseIdentifier {
 
     public static void main(String[] args) throws Exception {
         TweetFetcher fetcher = new TweetFetcher();
-        Categorizer cat = new OpenNlpCategorizer("model-s1.txt");
+        Categorizer cat = new WekaCategorizer("weka-model-s1.txt");
         UseCaseIdentifier useCaseCategorizer = new UseCaseIdentifier(cat);
         Map<String, String> iotTweets = fetcher.getTweets(
-                "SELECT * FROM `tweets` where tweet_text like '% iot %' or tweet_text like '%#iot%' or tweet_text like '%internet of things%' limit 1000");
+                "SELECT * FROM `tweets` where tweet_text like '% iot %' or tweet_text like '%#iot%' or tweet_text like '%internet of things%' limit 10000");
 
         Map<String, String> iotUseCases = useCaseCategorizer.getIoTUseCases(iotTweets);
         Map<String, TweetFetcher.TweetInfo> useCaseInfoMap = fetcher.getTweetsWithInfoFromId(iotUseCases.keySet());
@@ -35,8 +36,9 @@ public class UseCaseIdentifier {
         for (String tweetId : iotUseCases.keySet()) {
             double[] distribution = topicModeller.getTopicDistribution(tweetId);
             int topicId = topicModeller.getMaxIndex(distribution);
-            //System.out.println(tweetId +": "+ topicId + "(" + topics.get(topicId) + ") " + tweetInfoMap.get(tweetId).getTweetText());
+            double topicProbability = distribution[topicId];
             useCaseInfoMap.get(tweetId).setTopicId(topicId);
+            useCaseInfoMap.get(tweetId).setTopicProbability(topicProbability);
         }
         fetcher.saveTopics(topics);
         fetcher.saveUseCases(useCaseInfoMap);

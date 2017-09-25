@@ -152,7 +152,8 @@ public class TweetFetcher {
                                                properties.getProperty("db.user"), properties.getProperty("db.pass"));
             // Execute a query
             System.out.println("Saving use cases ...");
-            String sql = "insert into use_case (created_at, ind_id, screen_name, tweet, tweet_id, website) values (?,?,?,?,?,?)";
+            String sql = "insert into use_case (created_at, ind_id, screen_name, tweet, tweet_id, website, probability) " +
+                    "values (?,?,?,?,?,?,?)";
             for (TweetInfo info : tweetInfoMap.values()) {
                 preparedStatement = conn.prepareStatement(sql);
                 preparedStatement.setDate(1, new java.sql.Date(info.getCreatedAt().getTime()));
@@ -161,6 +162,7 @@ public class TweetFetcher {
                 preparedStatement.setString(4, info.getTweetText());
                 preparedStatement.setString(5,info.getTweetId());
                 preparedStatement.setString(6,getUrl(info.getTweetText()));
+                preparedStatement.setDouble(7, info.getTopicProbability());
 
                 preparedStatement.executeUpdate();
                 preparedStatement.close();
@@ -195,6 +197,8 @@ public class TweetFetcher {
         private String processedTweet;
 
         private int topicId;
+
+        private double topicProbability;
 
         public TweetInfo() {
         }
@@ -252,6 +256,14 @@ public class TweetFetcher {
 
         public void setTopicId(int topicId) {
             this.topicId = topicId;
+        }
+
+        public double getTopicProbability() {
+            return topicProbability;
+        }
+
+        public void setTopicProbability(double topicProbability) {
+            this.topicProbability = topicProbability;
         }
     }
 }

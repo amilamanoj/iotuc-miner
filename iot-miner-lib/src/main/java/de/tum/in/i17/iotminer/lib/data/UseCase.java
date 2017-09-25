@@ -44,6 +44,8 @@ public class UseCase {
 
     private String screenName;
 
+    private double probability;
+
     public UseCase() {
     }
 
@@ -121,5 +123,13 @@ public class UseCase {
 
     public void setScreenName(String screenName) {
         this.screenName = screenName;
+    }
+
+    public double getProbability() {
+        return probability;
+    }
+
+    public void setProbability(double probability) {
+        this.probability = probability;
     }
 }
