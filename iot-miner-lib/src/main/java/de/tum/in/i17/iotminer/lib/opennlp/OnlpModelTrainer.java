@@ -25,12 +25,12 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ModelTrainer {
+public class OnlpModelTrainer {
     public static void main(String[] args) throws URISyntaxException, IOException {
-        new ModelTrainer().prepareTrainingFileStep1("onlp-input-step1.txt");
-        new ModelTrainer().prepareTrainingFileStep2("onlp-input-step2.txt");
-        new ModelTrainer().trainModel("onlp-input-step1.txt", "onlp-model-s1.txt");
-        new ModelTrainer().trainModel("onlp-input-step2.txt", "onlp-model-s2.txt");
+        new OnlpModelTrainer().prepareTrainingFileStep1("onlp-input-step1.txt");
+        new OnlpModelTrainer().trainModel("onlp-input-step1.txt", "onlp-model-s1.txt");
+        //new OnlpModelTrainer().prepareTrainingFileStep2("onlp-input-step2.txt");
+        //new OnlpModelTrainer().trainModel("onlp-input-step2.txt", "onlp-model-s2.txt");
     }
 
     public void trainModel(String inputFile, String modelFile) {
