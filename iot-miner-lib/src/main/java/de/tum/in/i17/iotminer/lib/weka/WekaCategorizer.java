@@ -17,6 +17,8 @@ public class WekaCategorizer implements Categorizer {
 
     private String modelFile;
 
+
+    // constructor for training
     public WekaCategorizer(File dataDir, String modelFile) throws Exception {
 
         this.dataDir = dataDir;
@@ -31,6 +33,7 @@ public class WekaCategorizer implements Categorizer {
         }
     }
 
+    // constructor for using
     public WekaCategorizer(String modelFile) throws Exception {
 
         this.modelFile = modelFile;
@@ -44,12 +47,17 @@ public class WekaCategorizer implements Categorizer {
         WekaCategorizer classifier = new WekaCategorizer(
                 new File(WekaCategorizer.class.getResource("/supervised/data/step1").toURI()), "weka-model-s1.txt");
         classifier.train();
-        classifier.process("enabling access to for millions more in asia #iot #feedly #smartcity", "");
-
+        classifier.process("enabling access to for millions more in asia feedly smartcity", "");
+        classifier.saveModel();
     }
 
     private void init(String modelFile) throws Exception {
         wekaClassifier = (WekaMessageClassifier) SerializationHelper.read(modelFile);
+    }
+
+    public void saveModel() throws Exception {
+        System.out.println("Saving model");
+        SerializationHelper.write(modelFile, wekaClassifier);
     }
 
     @Override
@@ -84,8 +92,6 @@ public class WekaCategorizer implements Categorizer {
         try {
             if (classValue.length() != 0) {
                 wekaClassifier.updateData(message, classValue);
-                // Save message classifier object only if it was updated.}
-                SerializationHelper.write(modelFile, wekaClassifier);
             } else {
                 wekaClassifier.classifyMessage(message);
             }
