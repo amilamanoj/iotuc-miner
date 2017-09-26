@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -25,9 +26,11 @@ public class TweetFetcher {
                     + "[\\p{Alnum}.,%_=?&#\\-+()\\[\\]\\*$~@!:/{};']*)",
             Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
 
-    public TweetFetcher() throws IOException {
+    public TweetFetcher() throws IOException, ClassNotFoundException {
         properties = new Properties();
         properties.load(this.getClass().getResourceAsStream("/app.properties"));
+        //Register JDBC driver
+        Class.forName(properties.getProperty("jdbc.driver"));
     }
 
     public Map<String, String> getTweets(String query) throws ClassNotFoundException, SQLException, IOException {
@@ -36,14 +39,11 @@ public class TweetFetcher {
         Statement stmt = null;
         ResultSet rs = null;
         try {
-            //Register JDBC driver
-            Class.forName(properties.getProperty("jdbc.driver"));
-            //Open connection
             System.out.println("Connecting to database...");
             conn = DriverManager.getConnection(properties.getProperty("db.url"),
                                                properties.getProperty("db.user"), properties.getProperty("db.pass"));
             // Execute a query
-            System.out.println("Getting data ...");
+            System.out.println("Getting tweets ...");
             stmt = conn.createStatement();
             String sql = query;
 
@@ -68,21 +68,50 @@ public class TweetFetcher {
         }
     }
 
+    public Map<String, TweetInfo> getAllUseCases() throws ClassNotFoundException, SQLException, IOException {
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            System.out.println("Connecting to database...");
+            conn = DriverManager.getConnection(properties.getProperty("db.url"),
+                                               properties.getProperty("db.user"), properties.getProperty("db.pass"));
+            // Execute a query
+            System.out.println("Getting all use cases ...");
+            stmt = conn.createStatement();
+            String sql = "select tweet_id from use_case";
 
-    public Map<String, TweetInfo> getTweetsWithInfoFromId(Collection<String> tweetIds) throws ClassNotFoundException, SQLException, IOException {
+            rs = stmt.executeQuery(sql);
+            Collection<String> tweetIds = new ArrayList<>();
+            while (rs.next()) {
+                long tweetId = rs.getLong("tweet_id");
+                tweetIds.add(String.valueOf(tweetId));
+            }
+            return getTweetsWithInfoFromId(tweetIds);
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (stmt != null) {
+                stmt.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        }
+    }
+
+        public Map<String, TweetInfo> getTweetsWithInfoFromId(Collection<String> tweetIds) throws ClassNotFoundException, SQLException, IOException {
         Map<String, TweetInfo> tweets = new HashMap<>();
         Connection conn = null;
         Statement stmt = null;
         ResultSet rs = null;
         try {
-            //Register JDBC driver
-            Class.forName(properties.getProperty("jdbc.driver"));
-            //Open connection
             System.out.println("Connecting to database...");
             conn = DriverManager.getConnection(properties.getProperty("db.url"),
                                                properties.getProperty("db.user"), properties.getProperty("db.pass"));
             // Execute a query
-            System.out.println("Getting data ...");
+            System.out.println("Getting tweet data from id ...");
             stmt = conn.createStatement();
             String sql = "select * from tweets where tweet_id in (" + String.join(",", tweetIds) +")";
 
@@ -113,10 +142,7 @@ public class TweetFetcher {
     public void saveTopics(Map<Integer, String> topics) throws ClassNotFoundException, SQLException {
         Connection conn = null;
         PreparedStatement preparedStatement = null;
-        int res;
         try {
-            //Register JDBC driver
-            Class.forName(properties.getProperty("jdbc.driver"));
             //Open connection
             System.out.println("Connecting to database...");
             conn = DriverManager.getConnection(properties.getProperty("db.url"),
@@ -138,15 +164,32 @@ public class TweetFetcher {
         }
     }
 
+    public void deleteTopics(Map<Integer, String> topics) throws ClassNotFoundException, SQLException {
+        Connection conn = null;
+        PreparedStatement preparedStatement = null;
+        try {
+            //Open connection
+            System.out.println("Connecting to database...");
+            conn = DriverManager.getConnection(properties.getProperty("db.url"),
+                                               properties.getProperty("db.user"), properties.getProperty("db.pass"));
+            // Execute a query
+            System.out.println("Saving topics ...");
+            String sql = "delete from industry";
+            preparedStatement = conn.prepareStatement(sql);
+            preparedStatement.executeUpdate();
+            preparedStatement.close();
+        } finally {
+            if (conn != null) {
+                conn.close();
+            }
+        }
+    }
+
 
     public void saveUseCases(Map<String, TweetFetcher.TweetInfo> tweetInfoMap) throws ClassNotFoundException, SQLException {
         Connection conn = null;
         PreparedStatement preparedStatement = null;
-        int res;
         try {
-            //Register JDBC driver
-            Class.forName(properties.getProperty("jdbc.driver"));
-            //Open connection
             System.out.println("Connecting to database...");
             conn = DriverManager.getConnection(properties.getProperty("db.url"),
                                                properties.getProperty("db.user"), properties.getProperty("db.pass"));

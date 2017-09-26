@@ -90,6 +90,9 @@ public class TweetPreprocessor {
             }
             if (shouldWrite) {
                 linesToWrite.put(line.getKey(), line.getValue());
+                if (linesToWrite.size() % 500 == 0) {
+                    System.out.println("Filtering: " + linesToWrite.size());
+                }
             }
         }
         System.out.printf("After removing duplicates: " + linesToWrite.size());

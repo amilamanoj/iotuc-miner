@@ -5,6 +5,7 @@ import de.tum.in.i17.iotminer.lib.opennlp.OpenNlpCategorizer;
 import de.tum.in.i17.iotminer.lib.util.TweetFetcher;
 import de.tum.in.i17.iotminer.lib.weka.WekaCategorizer;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,15 +20,19 @@ public class UseCaseIdentifier {
     }
 
     public static void main(String[] args) throws Exception {
-        TweetFetcher fetcher = new TweetFetcher();
         Categorizer cat = new WekaCategorizer("weka-model-s1.txt");
-        UseCaseIdentifier useCaseCategorizer = new UseCaseIdentifier(cat);
+        UseCaseIdentifier useCaseIdentifier = new UseCaseIdentifier(cat);
+        useCaseIdentifier.mineUseCases();
+    }
+
+    private void mineUseCases() throws Exception {
+        TweetFetcher fetcher = new TweetFetcher();
         Map<String, String> iotTweets = fetcher.getTweets(
                 "SELECT * FROM `tweets` where tweet_text like '% iot %' or tweet_text like '%#iot%' or tweet_text like '%internet of things%' limit 10000");
 
-        Map<String, String> iotUseCases = useCaseCategorizer.getIoTUseCases(iotTweets);
+        Map<String, String> iotUseCases = this.getIoTUseCases(iotTweets);
         Map<String, TweetFetcher.TweetInfo> useCaseInfoMap = fetcher.getTweetsWithInfoFromId(iotUseCases.keySet());
-        TopicModeller topicModeller = new TopicModeller(10);
+        TopicModeller topicModeller = new TopicModeller(6);
         topicModeller.modelTopics(iotUseCases);
         Map<Integer, String> topics = topicModeller.getTopicList();
         System.out.println(topics);
@@ -42,7 +47,29 @@ public class UseCaseIdentifier {
         }
         fetcher.saveTopics(topics);
         fetcher.saveUseCases(useCaseInfoMap);
+    }
 
+    private void remodelTopics(int numberOfTopics) throws Exception {
+        TweetFetcher fetcher = new TweetFetcher();
+        Map<String, TweetFetcher.TweetInfo> useCaseInfoMap = fetcher.getAllUseCases();
+        Map<String, String> iotUseCases = new HashMap<>();
+        TweetPreprocessor preprocessor = new TweetPreprocessor();
+        for (TweetFetcher.TweetInfo info : useCaseInfoMap.values()) {
+            iotUseCases.put(info.getTweetId(), info.getTweetText());
+        }
+        Map<String, String> preProcessedIotUseCases = preprocessor.preProcess(iotUseCases);
+        TopicModeller topicModeller = new TopicModeller(numberOfTopics);
+        topicModeller.modelTopics(preProcessedIotUseCases);
+        Map<Integer, String> topics = topicModeller.getTopicList();
+        System.out.println(topics);
+        for (String tweetId : iotUseCases.keySet()) {
+            double[] distribution = topicModeller.getTopicDistribution(tweetId);
+            int topicId = topicModeller.getMaxIndex(distribution);
+            double topicProbability = distribution[topicId];
+            useCaseInfoMap.get(tweetId).setTopicId(topicId);
+            useCaseInfoMap.get(tweetId).setTopicProbability(topicProbability);
+        }
+        fetcher.saveTopics(topics);
     }
 
     public Map<String, String> getIoTUseCases(Map<String, String> candidateList) throws Exception {
