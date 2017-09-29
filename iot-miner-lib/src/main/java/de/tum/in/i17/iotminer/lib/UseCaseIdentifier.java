@@ -23,6 +23,7 @@ public class UseCaseIdentifier {
         Categorizer cat = new WekaCategorizer("weka-model-s1.txt");
         UseCaseIdentifier useCaseIdentifier = new UseCaseIdentifier(cat);
         useCaseIdentifier.mineUseCases();
+        //useCaseIdentifier.remodelTopics(3);
     }
 
     private void mineUseCases() throws Exception {
@@ -69,7 +70,10 @@ public class UseCaseIdentifier {
             useCaseInfoMap.get(tweetId).setTopicId(topicId);
             useCaseInfoMap.get(tweetId).setTopicProbability(topicProbability);
         }
+        fetcher.deleteUseCases();
+        fetcher.deleteTopics();
         fetcher.saveTopics(topics);
+        fetcher.saveUseCases(useCaseInfoMap);
     }
 
     public Map<String, String> getIoTUseCases(Map<String, String> candidateList) throws Exception {

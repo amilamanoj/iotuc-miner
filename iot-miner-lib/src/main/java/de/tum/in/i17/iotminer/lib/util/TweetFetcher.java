@@ -164,7 +164,7 @@ public class TweetFetcher {
         }
     }
 
-    public void deleteTopics(Map<Integer, String> topics) throws ClassNotFoundException, SQLException {
+    public void deleteTopics() throws ClassNotFoundException, SQLException {
         Connection conn = null;
         PreparedStatement preparedStatement = null;
         try {
@@ -173,8 +173,29 @@ public class TweetFetcher {
             conn = DriverManager.getConnection(properties.getProperty("db.url"),
                                                properties.getProperty("db.user"), properties.getProperty("db.pass"));
             // Execute a query
-            System.out.println("Saving topics ...");
+            System.out.println("Deleting topics ...");
             String sql = "delete from industry";
+            preparedStatement = conn.prepareStatement(sql);
+            preparedStatement.executeUpdate();
+            preparedStatement.close();
+        } finally {
+            if (conn != null) {
+                conn.close();
+            }
+        }
+    }
+
+    public void deleteUseCases() throws ClassNotFoundException, SQLException {
+        Connection conn = null;
+        PreparedStatement preparedStatement = null;
+        try {
+            //Open connection
+            System.out.println("Connecting to database...");
+            conn = DriverManager.getConnection(properties.getProperty("db.url"),
+                                               properties.getProperty("db.user"), properties.getProperty("db.pass"));
+            // Execute a query
+            System.out.println("Deleting usecases ...");
+            String sql = "truncate use_case";
             preparedStatement = conn.prepareStatement(sql);
             preparedStatement.executeUpdate();
             preparedStatement.close();
