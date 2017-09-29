@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 public class TopicModeller {
 
-    private static final int ITERATIONS = 100;
+    private int iterations;
 
     private ParallelTopicModel model;
     private InstanceList instances;
@@ -21,7 +21,7 @@ public class TopicModeller {
 
 
     public static void main(String[] args) throws IOException, URISyntaxException {
-        TopicModeller modeller = new TopicModeller(10);
+        TopicModeller modeller = new TopicModeller(10, 500);
         List<String> lines = Files.readAllLines(new File(TopicModeller.class.getResource("/supervised/data/step1/class-iot.txt").toURI()).toPath());
         Map<String, String> tweetMap = new HashMap<>();
         for (int x = 0 ; x < lines.size() ; x++) {
@@ -32,7 +32,7 @@ public class TopicModeller {
         modeller.inferTopic("singapore to launch first trial of driverless buses in jurong west self driving cars iot transport smartcars");
     }
 
-    public TopicModeller(int numberOfTopics) {
+    public TopicModeller(int numberOfTopics, int iterations) {
         // Begin by importing documents from text to feature sequences
         ArrayList<Pipe> pipeList = new ArrayList<Pipe>();
         // Pipes: lowercase, tokenize, remove stopwords, map to features
@@ -46,8 +46,10 @@ public class TopicModeller {
         // Create a model with given number of topics, alpha_t = 0.01, beta_w = 0.01
         //  Note that the first parameter is passed as the sum over topics, while
         //  the second is
-        model = new ParallelTopicModel(numberOfTopics, 1.0, 0.01);
-
+        model = new ParallelTopicModel(numberOfTopics, 5, 0.01);
+        model.setOptimizeInterval(45);
+        model.setBurninPeriod(200);
+        this.iterations = iterations;
     }
 
     public void modelTopics(Map<String, String> tweets) throws IOException, URISyntaxException {
@@ -71,7 +73,7 @@ public class TopicModeller {
 
         // Run the model for 500 iterations and stop (this is for testing only,
         //  for real applications, use 1000 to 2000 iterations)
-        model.setNumIterations(ITERATIONS);
+        model.setNumIterations(iterations);
         model.estimate();
     }
 
@@ -109,6 +111,7 @@ public class TopicModeller {
 
         // Get an array of sorted sets of word ID/count pairs
         ArrayList<TreeSet<IDSorter>> topicSortedWords = model.getSortedWords();
+        Object[][] topWords = model.getTopWords(5);
         //
         // Show top 5 words in topics with proportions for the first document
         for (int topic = 0; topic < model.getNumTopics(); topic++) {

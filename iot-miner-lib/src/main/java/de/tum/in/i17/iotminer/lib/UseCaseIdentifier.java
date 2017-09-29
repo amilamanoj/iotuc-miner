@@ -22,8 +22,8 @@ public class UseCaseIdentifier {
     public static void main(String[] args) throws Exception {
         Categorizer cat = new WekaCategorizer("weka-model-s1.txt");
         UseCaseIdentifier useCaseIdentifier = new UseCaseIdentifier(cat);
-        useCaseIdentifier.mineUseCases();
-        //useCaseIdentifier.remodelTopics(3);
+        //useCaseIdentifier.mineUseCases();
+        useCaseIdentifier.remodelTopics(5);
     }
 
     private void mineUseCases() throws Exception {
@@ -33,7 +33,7 @@ public class UseCaseIdentifier {
 
         Map<String, String> iotUseCases = this.getIoTUseCases(iotTweets);
         Map<String, TweetFetcher.TweetInfo> useCaseInfoMap = fetcher.getTweetsWithInfoFromId(iotUseCases.keySet());
-        TopicModeller topicModeller = new TopicModeller(6);
+        TopicModeller topicModeller = new TopicModeller(6, 500);
         topicModeller.modelTopics(iotUseCases);
         Map<Integer, String> topics = topicModeller.getTopicList();
         System.out.println(topics);
@@ -59,7 +59,7 @@ public class UseCaseIdentifier {
             iotUseCases.put(info.getTweetId(), info.getTweetText());
         }
         Map<String, String> preProcessedIotUseCases = preprocessor.preProcess(iotUseCases);
-        TopicModeller topicModeller = new TopicModeller(numberOfTopics);
+        TopicModeller topicModeller = new TopicModeller(numberOfTopics, 500);
         topicModeller.modelTopics(preProcessedIotUseCases);
         Map<Integer, String> topics = topicModeller.getTopicList();
         System.out.println(topics);
