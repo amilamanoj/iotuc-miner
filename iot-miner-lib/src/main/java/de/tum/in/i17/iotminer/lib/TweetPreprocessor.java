@@ -156,6 +156,10 @@ public class TweetPreprocessor {
         newLine = newLine.replaceAll("\\.\\.\\. ", "");
         newLine = newLine.replaceAll(" +", " ");
         newLine = newLine.replaceAll("[0-9]", "");
+        newLine = newLine.replaceAll("#iot ", "");
+        newLine = newLine.replaceAll(" #iot", "");
+        newLine = newLine.replaceAll("#iot: ", "");
+        newLine = newLine.replaceAll("#", "");
         return newLine;
     }
 
