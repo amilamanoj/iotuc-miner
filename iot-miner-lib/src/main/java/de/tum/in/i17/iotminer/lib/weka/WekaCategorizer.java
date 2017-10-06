@@ -1,6 +1,7 @@
 package de.tum.in.i17.iotminer.lib.weka;
 
 import de.tum.in.i17.iotminer.lib.Categorizer;
+import de.tum.in.i17.iotminer.lib.TweetPreprocessor;
 import weka.core.SerializationHelper;
 
 import java.io.File;
@@ -45,7 +46,7 @@ public class WekaCategorizer implements Categorizer {
 
     public static void main(String[] args) throws Exception {
         WekaCategorizer classifier = new WekaCategorizer(
-                new File(WekaCategorizer.class.getResource("/supervised/data/step1").toURI()), "weka-model-s1.txt");
+                new File(WekaCategorizer.class.getResource("/supervised/data/step1").toURI()), "weka-model-s11.txt");
         classifier.train();
         classifier.process("enabling access to for millions more in asia feedly smartcity", "");
         classifier.saveModel();
@@ -70,6 +71,7 @@ public class WekaCategorizer implements Categorizer {
     }
 
     public void train() throws IOException {
+        TweetPreprocessor preprocessor = new TweetPreprocessor();
         for (File file : dataDir.listFiles()) {
             String fileName = file.getName();
             String className = fileName.split("-")[1];
@@ -77,7 +79,8 @@ public class WekaCategorizer implements Categorizer {
             System.out.println("Training for class: " + className);
             List<String> lines = Files.readAllLines(file.toPath());
             for (String line : lines) {
-                this.process(line, className);
+                String processedLine = preprocessor.cleanTweet(line);
+                this.process(processedLine, className);
             }
         }
     }

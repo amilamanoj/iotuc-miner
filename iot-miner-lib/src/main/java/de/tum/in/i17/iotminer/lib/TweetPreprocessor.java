@@ -132,7 +132,7 @@ public class TweetPreprocessor {
         return String.join(" ", nonStopWords);
     }
 
-    private String cleanTweet(String line) {
+    public String cleanTweet(String line) {
         String newLine = line.trim();
 
         newLine = newLine.toLowerCase();
@@ -154,12 +154,10 @@ public class TweetPreprocessor {
         newLine = newLine.replaceAll("…", "");
         newLine = newLine.replaceAll("… ", "");
         newLine = newLine.replaceAll("\\.\\.\\. ", "");
+        newLine = newLine.replaceAll("[^\\p{IsAlphabetic} ]", "");
+        newLine = newLine.replaceAll(" iot ", " ");
+        newLine = newLine.replaceAll(" iot", "");
         newLine = newLine.replaceAll(" +", " ");
-        newLine = newLine.replaceAll("[0-9]", "");
-        newLine = newLine.replaceAll("#iot ", "");
-        newLine = newLine.replaceAll(" #iot", "");
-        newLine = newLine.replaceAll("#iot: ", "");
-        newLine = newLine.replaceAll("#", "");
         return newLine;
     }
 
