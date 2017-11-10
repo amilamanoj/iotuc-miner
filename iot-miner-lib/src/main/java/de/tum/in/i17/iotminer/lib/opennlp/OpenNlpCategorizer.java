@@ -15,13 +15,6 @@ public class OpenNlpCategorizer implements Categorizer {
         init(modelFile);
     }
 
-    public static void main(String[] args) throws Exception {
-        OpenNlpCategorizer categorizer = new OpenNlpCategorizer("opennlp-model.txt");
-        String category = categorizer.categorize(
-                "enabling access to healthcare for millions more in asia #iot #feedly #healthcare #smartcity");
-        System.out.println(category);
-    }
-
     private void init(String model) throws Exception {
         DoccatModel docCatModel = new DoccatModel(new FileInputStream(model));
         myCategorizer = new DocumentCategorizerME(docCatModel);

@@ -44,14 +44,6 @@ public class WekaCategorizer implements Categorizer {
         init(modelFile);
     }
 
-    public static void main(String[] args) throws Exception {
-        WekaCategorizer classifier = new WekaCategorizer(
-                new File(WekaCategorizer.class.getResource("/supervised/data/step1").toURI()), "weka-model-s11.txt");
-        classifier.train();
-        classifier.process("enabling access to for millions more in asia feedly smartcity", "");
-        classifier.saveModel();
-    }
-
     private void init(String modelFile) throws Exception {
         wekaClassifier = (WekaMessageClassifier) SerializationHelper.read(modelFile);
     }

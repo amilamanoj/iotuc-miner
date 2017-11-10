@@ -40,14 +40,11 @@ public class TweetFetcher {
         ResultSet rs = null;
         try {
             System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(properties.getProperty("db.url"),
-                                               properties.getProperty("db.user"), properties.getProperty("db.pass"));
+            conn = getDbConnection();
             // Execute a query
             System.out.println("Getting tweets ...");
             stmt = conn.createStatement();
-            String sql = query;
-
-            rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery(query);
             while (rs.next()) {
                 long tweetId = rs.getLong("tweet_id");
                 String tweetText = rs.getString("tweet_text");
@@ -74,8 +71,7 @@ public class TweetFetcher {
         ResultSet rs = null;
         try {
             System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(properties.getProperty("db.url"),
-                                               properties.getProperty("db.user"), properties.getProperty("db.pass"));
+            conn = getDbConnection();
             // Execute a query
             System.out.println("Getting all use cases ...");
             stmt = conn.createStatement();
@@ -108,8 +104,7 @@ public class TweetFetcher {
         ResultSet rs = null;
         try {
             System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(properties.getProperty("db.url"),
-                                               properties.getProperty("db.user"), properties.getProperty("db.pass"));
+            conn = getDbConnection();
             // Execute a query
             System.out.println("Getting tweet data from id ...");
             stmt = conn.createStatement();
@@ -138,15 +133,13 @@ public class TweetFetcher {
             }
         }
     }
-
+    
     public void saveTopics(Map<Integer, String> topics) throws ClassNotFoundException, SQLException {
         Connection conn = null;
         PreparedStatement preparedStatement = null;
         try {
-            //Open connection
             System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(properties.getProperty("db.url"),
-                                               properties.getProperty("db.user"), properties.getProperty("db.pass"));
+            conn = getDbConnection();
             // Execute a query
             System.out.println("Saving topics ...");
             String sql = "insert into industry (id, name) values (?,?)";
@@ -168,10 +161,8 @@ public class TweetFetcher {
         Connection conn = null;
         PreparedStatement preparedStatement = null;
         try {
-            //Open connection
             System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(properties.getProperty("db.url"),
-                                               properties.getProperty("db.user"), properties.getProperty("db.pass"));
+            conn = getDbConnection();
             // Execute a query
             System.out.println("Deleting topics ...");
             String sql = "delete from industry";
@@ -189,10 +180,8 @@ public class TweetFetcher {
         Connection conn = null;
         PreparedStatement preparedStatement = null;
         try {
-            //Open connection
             System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(properties.getProperty("db.url"),
-                                               properties.getProperty("db.user"), properties.getProperty("db.pass"));
+            conn = getDbConnection();
             // Execute a query
             System.out.println("Deleting usecases ...");
             String sql = "truncate use_case";
@@ -212,8 +201,7 @@ public class TweetFetcher {
         PreparedStatement preparedStatement = null;
         try {
             System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(properties.getProperty("db.url"),
-                                               properties.getProperty("db.user"), properties.getProperty("db.pass"));
+            conn = getDbConnection();
             // Execute a query
             System.out.println("Saving use cases ...");
             String sql = "insert into use_case (created_at, ind_id, screen_name, tweet, tweet_id, website, probability) " +
@@ -236,6 +224,12 @@ public class TweetFetcher {
                 conn.close();
             }
         }
+    }
+    
+    private Connection getDbConnection() throws SQLException {
+        //Open connection
+        return DriverManager.getConnection(properties.getProperty("db.url"),
+                properties.getProperty("db.user"), properties.getProperty("db.pass"));
     }
 
     private String getUrl(String tweet) {

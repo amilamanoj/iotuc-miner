@@ -1,5 +1,6 @@
 package de.tum.in.i17.iotminer.lib.opennlp;
 
+import de.tum.in.i17.iotminer.lib.Trainer;
 import opennlp.tools.doccat.DoccatFactory;
 import opennlp.tools.doccat.DoccatModel;
 import opennlp.tools.doccat.DocumentCategorizerME;
@@ -25,12 +26,26 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OnlpModelTrainer {
-    public static void main(String[] args) throws URISyntaxException, IOException {
-        new OnlpModelTrainer().prepareTrainingFileStep1("onlp-input-step1.txt");
-        new OnlpModelTrainer().trainModel("onlp-input-step1.txt", "onlp-model-s1.txt");
-        //new OnlpModelTrainer().prepareTrainingFileStep2("onlp-input-step2.txt");
-        //new OnlpModelTrainer().trainModel("onlp-input-step2.txt", "onlp-model-s2.txt");
+public class OpenNlpModelTrainer implements Trainer {
+
+    @Override
+    public void trainStep1() {
+        try {
+            this.prepareTrainingFileStep1("onlp-input-1.txt");
+            this.trainModel("onlp-input-s1.txt", "onlp-model-s1.txt");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void trainStep2() {
+        try {
+            this.prepareTrainingFileStep2("onlp-input-s2.txt");
+            this.trainModel("onlp-input-s2.txt", "onlp-model-s2.txt");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void trainModel(String inputFile, String modelFile) {
@@ -46,7 +61,7 @@ public class OnlpModelTrainer {
                     lineStream);
 
             model = DocumentCategorizerME.train("en", sampleStream,
-                                                TrainingParameters.defaultParams(), new DoccatFactory());
+                    TrainingParameters.defaultParams(), new DoccatFactory());
 
             OutputStream modelOut = null;
             File modelFileTmp = new File(modelFile);
@@ -115,4 +130,5 @@ public class OnlpModelTrainer {
         writer.flush();
         writer.close();
     }
+
 }

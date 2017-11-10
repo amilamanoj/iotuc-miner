@@ -1,11 +1,10 @@
 package de.tum.in.i17.iotminer.lib;
 
 import de.tum.in.i17.iotminer.lib.mallet.TopicModeller;
-import de.tum.in.i17.iotminer.lib.opennlp.OpenNlpCategorizer;
 import de.tum.in.i17.iotminer.lib.util.TweetFetcher;
 import de.tum.in.i17.iotminer.lib.weka.WekaCategorizer;
+import de.tum.in.i17.iotminer.lib.weka.WekaModelTrainer;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,10 +19,12 @@ public class UseCaseIdentifier {
     }
 
     public static void main(String[] args) throws Exception {
+        Trainer trainer = new WekaModelTrainer();
+        trainer.trainStep1();
         Categorizer cat = new WekaCategorizer("weka-model-s1.txt");
         UseCaseIdentifier useCaseIdentifier = new UseCaseIdentifier(cat);
-        //useCaseIdentifier.mineUseCases();
-        useCaseIdentifier.remodelTopics(5);
+        useCaseIdentifier.mineUseCases();
+        //useCaseIdentifier.remodelTopics(5);
     }
 
     private void mineUseCases() throws Exception {
