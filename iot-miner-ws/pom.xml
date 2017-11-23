@@ -38,7 +38,7 @@
     </dependencies>
 
     <build>
-        <finalName>iot-minor</finalName>
+        <finalName>iot-miner</finalName>
         <sourceDirectory>src/main/java</sourceDirectory>
         <plugins>
             <plugin>
