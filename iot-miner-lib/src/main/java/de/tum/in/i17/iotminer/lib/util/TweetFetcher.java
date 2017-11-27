@@ -134,7 +134,7 @@ public class TweetFetcher {
         }
     }
     
-    public void saveTopics(Map<Integer, String> topics) throws ClassNotFoundException, SQLException {
+    public void saveTopics(Map<Integer, String> topics, boolean recreateTable) throws ClassNotFoundException, SQLException {
         Connection conn = null;
         PreparedStatement preparedStatement = null;
         try {
@@ -143,6 +143,11 @@ public class TweetFetcher {
             // Execute a query
             System.out.println("Saving topics ...");
             String sql = "insert into industry (id, name) values (?,?)";
+
+            if (recreateTable) {
+             recreateTables();
+            }
+
             for (Map.Entry<Integer, String> topic : topics.entrySet()) {
                 preparedStatement = conn.prepareStatement(sql);
                 preparedStatement.setString(1, String.valueOf(topic.getKey()));
@@ -156,6 +161,35 @@ public class TweetFetcher {
             }
         }
     }
+
+    private void recreateTables() throws SQLException {
+        Connection conn = null;
+        PreparedStatement preparedStatement = null;
+        try {
+            System.out.println("Connecting to database...");
+            conn = getDbConnection();
+            // Execute a query
+            System.out.println("Deleting topics ...");
+            String drop1Query = "DROP TABLE IF EXISTS use_case";
+            String drop2Query = "DROP TABLE IF EXISTS industry";
+            String createQuery = "CREATE TABLE industry (id int(11) NOT NULL, name varchar(255) DEFAULT NULL, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+            preparedStatement = conn.prepareStatement(drop1Query);
+            preparedStatement.executeUpdate();
+            preparedStatement.close();
+            preparedStatement = conn.prepareStatement(drop2Query);
+            preparedStatement.executeUpdate();
+            preparedStatement.close();
+            preparedStatement = conn.prepareStatement(createQuery);
+            preparedStatement.executeUpdate();
+            preparedStatement.close();
+
+        } finally {
+            if (conn != null) {
+                conn.close();
+            }
+        }
+    }
+
 
     public void deleteTopics() throws ClassNotFoundException, SQLException {
         Connection conn = null;
@@ -204,8 +238,19 @@ public class TweetFetcher {
             conn = getDbConnection();
             // Execute a query
             System.out.println("Saving use cases ...");
+            String createQuery = "CREATE TABLE IF NOT EXISTS `use_case` " +
+                    "(`id` bigint(20) NOT NULL AUTO_INCREMENT,`created_at` datetime DEFAULT NULL,`description` varchar(255) DEFAULT NULL," +
+                    "`name` varchar(255) DEFAULT NULL,`probability` double NOT NULL,`screen_name` varchar(255) DEFAULT NULL," +
+                    "`tweet` varchar(255) DEFAULT NULL,`tweet_id` varchar(255) DEFAULT NULL,`website` varchar(255) DEFAULT NULL," +
+                    "`ind_id` int(11) DEFAULT NULL, PRIMARY KEY (`id`), KEY `FK3uwxkpy73xqrs4w86x1hrguu4` (`ind_id`), " +
+                    "CONSTRAINT `FK3uwxkpy73xqrs4w86x1hrguu4` FOREIGN KEY (`ind_id`) REFERENCES `industry` (`id`)) DEFAULT CHARSET=utf8";
             String sql = "insert into use_case (created_at, ind_id, screen_name, tweet, tweet_id, website, probability) " +
                     "values (?,?,?,?,?,?,?)";
+
+            preparedStatement = conn.prepareStatement(createQuery);
+            preparedStatement.executeUpdate();
+            preparedStatement.close();
+
             for (TweetInfo info : tweetInfoMap.values()) {
                 preparedStatement = conn.prepareStatement(sql);
                 preparedStatement.setDate(1, new java.sql.Date(info.getCreatedAt().getTime()));

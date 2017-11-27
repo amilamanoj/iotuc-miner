@@ -19,8 +19,8 @@ public class UseCaseIdentifier {
     }
 
     public static void main(String[] args) throws Exception {
-        Trainer trainer = new WekaModelTrainer();
-        trainer.trainStep1();
+        //Trainer trainer = new WekaModelTrainer();
+        //trainer.trainStep1();
         Categorizer cat = new WekaCategorizer("weka-model-s1.txt");
         UseCaseIdentifier useCaseIdentifier = new UseCaseIdentifier(cat);
         useCaseIdentifier.mineUseCases();
@@ -30,11 +30,11 @@ public class UseCaseIdentifier {
     private void mineUseCases() throws Exception {
         TweetFetcher fetcher = new TweetFetcher();
         Map<String, String> iotTweets = fetcher.getTweets(
-                "SELECT * FROM `tweets` where tweet_text like '% iot %' or tweet_text like '%#iot%' or tweet_text like '%internet of things%' limit 10000");
+                "SELECT * FROM `tweets` where tweet_text like '% iot %' or tweet_text like '%#iot%' or tweet_text like '%internet of things%' limit 5000");
 
         Map<String, String> iotUseCases = this.getIoTUseCases(iotTweets);
         Map<String, TweetFetcher.TweetInfo> useCaseInfoMap = fetcher.getTweetsWithInfoFromId(iotUseCases.keySet());
-        TopicModeller topicModeller = new TopicModeller(6, 500);
+        TopicModeller topicModeller = new TopicModeller(6, 100);
         topicModeller.modelTopics(iotUseCases);
         Map<Integer, String> topics = topicModeller.getTopicList();
         System.out.println(topics);
@@ -47,7 +47,7 @@ public class UseCaseIdentifier {
             useCaseInfoMap.get(tweetId).setTopicId(topicId);
             useCaseInfoMap.get(tweetId).setTopicProbability(topicProbability);
         }
-        fetcher.saveTopics(topics);
+        fetcher.saveTopics(topics, true);
         fetcher.saveUseCases(useCaseInfoMap);
     }
 
@@ -60,7 +60,7 @@ public class UseCaseIdentifier {
             iotUseCases.put(info.getTweetId(), info.getTweetText());
         }
         Map<String, String> preProcessedIotUseCases = preprocessor.preProcess(iotUseCases);
-        TopicModeller topicModeller = new TopicModeller(numberOfTopics, 500);
+        TopicModeller topicModeller = new TopicModeller(numberOfTopics, 100);
         topicModeller.modelTopics(preProcessedIotUseCases);
         Map<Integer, String> topics = topicModeller.getTopicList();
         System.out.println(topics);
@@ -71,9 +71,7 @@ public class UseCaseIdentifier {
             useCaseInfoMap.get(tweetId).setTopicId(topicId);
             useCaseInfoMap.get(tweetId).setTopicProbability(topicProbability);
         }
-        fetcher.deleteUseCases();
-        fetcher.deleteTopics();
-        fetcher.saveTopics(topics);
+        fetcher.saveTopics(topics, true);
         fetcher.saveUseCases(useCaseInfoMap);
     }
 
