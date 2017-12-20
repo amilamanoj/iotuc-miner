@@ -2,8 +2,7 @@ package de.tum.in.i17.iotminer.lib;
 
 import de.tum.in.i17.iotminer.lib.mallet.TopicModeller;
 import de.tum.in.i17.iotminer.lib.util.TweetFetcher;
-import de.tum.in.i17.iotminer.lib.weka.WekaCategorizer;
-import de.tum.in.i17.iotminer.lib.weka.WekaModelTrainer;
+import de.tum.in.i17.iotminer.lib.weka.WekaClassifier;
 
 import java.util.HashMap;
 import java.util.List;
@@ -11,17 +10,17 @@ import java.util.Map;
 
 public class UseCaseIdentifier {
 
-    private Categorizer categorizer;
+    private Classifier classifier;
 
 
-    public UseCaseIdentifier(Categorizer cat) throws Exception {
-        categorizer = cat;
+    public UseCaseIdentifier(Classifier cat) throws Exception {
+        classifier = cat;
     }
 
     public static void main(String[] args) throws Exception {
         //Trainer trainer = new WekaModelTrainer();
         //trainer.trainStep1();
-        Categorizer cat = new WekaCategorizer("weka-model-s1.txt");
+        Classifier cat = new WekaClassifier("weka-model-s1.txt");
         UseCaseIdentifier useCaseIdentifier = new UseCaseIdentifier(cat);
         useCaseIdentifier.mineUseCases();
         //useCaseIdentifier.remodelTopics(5);
@@ -81,8 +80,8 @@ public class UseCaseIdentifier {
 
         Map<String, String> iotUseCases = new HashMap<>();
         preProcessedTweets.forEach((key, value) -> {
-            String category = categorizer.categorize(value);
-            if ("iot".equals(category)) {
+            String tweetClass = classifier.classify(value);
+            if ("iot".equals(tweetClass)) {
                 iotUseCases.put(key, value);
             }
         });
@@ -93,10 +92,10 @@ public class UseCaseIdentifier {
     public Map<String, String> classifyTweets(List<String> tweets) throws Exception {
         Map<String, String> classificationMap = new HashMap<>();
         for (String tweet : tweets) {
-            String category = categorizer.categorize(tweet);
-            System.out.println(category + " : " + tweet);
+            String tweetClass = classifier.classify(tweet);
+            System.out.println(tweetClass + " : " + tweet);
             System.out.println("====================");
-            classificationMap.put(tweet, category);
+            classificationMap.put(tweet, tweetClass);
         }
         System.out.println("Total IoT usecases: " + tweets.size());
         return classificationMap;

@@ -3,15 +3,15 @@ package de.tum.in.i17.iotminer.lib.opennlp;
 
 import java.io.FileInputStream;
 
-import de.tum.in.i17.iotminer.lib.Categorizer;
+import de.tum.in.i17.iotminer.lib.Classifier;
 import opennlp.tools.doccat.DoccatModel;
 import opennlp.tools.doccat.DocumentCategorizerME;
 
-public class OpenNlpCategorizer implements Categorizer {
+public class OpenNlpClassifier implements Classifier {
 
     private DocumentCategorizerME myCategorizer;
 
-    public OpenNlpCategorizer(String modelFile) throws Exception {
+    public OpenNlpClassifier(String modelFile) throws Exception {
         init(modelFile);
     }
 
@@ -21,7 +21,7 @@ public class OpenNlpCategorizer implements Categorizer {
     }
 
     @Override
-    public String categorize(String text) {
+    public String classify(String text) {
         double[] outcomes = myCategorizer.categorize(text.split(" "));
         String category = myCategorizer.getBestCategory(outcomes);
         //System.out.println(myCategorizer.scoreMap(text.split(" ")));

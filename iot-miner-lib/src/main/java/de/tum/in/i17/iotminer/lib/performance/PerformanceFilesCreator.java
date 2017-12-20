@@ -1,6 +1,6 @@
 package de.tum.in.i17.iotminer.lib.performance;
 
-import de.tum.in.i17.iotminer.lib.weka.WekaCategorizer;
+import de.tum.in.i17.iotminer.lib.weka.WekaClassifier;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -112,7 +112,7 @@ public class PerformanceFilesCreator {
     }
 
     public void generateWekaModel() throws Exception {
-        WekaCategorizer classifier = new WekaCategorizer(
+        WekaClassifier classifier = new WekaClassifier(
                 new File("performance/train"), "performance/models/model-s1.txt");
         classifier.train();
     }

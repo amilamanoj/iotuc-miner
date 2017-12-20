@@ -1,10 +1,10 @@
 package de.tum.in.i17.iotminer.lib.performance;
 
-import de.tum.in.i17.iotminer.lib.Categorizer;
+import de.tum.in.i17.iotminer.lib.Classifier;
 import de.tum.in.i17.iotminer.lib.UseCaseIdentifier;
 import de.tum.in.i17.iotminer.lib.opennlp.OpenNlpModelTrainer;
-import de.tum.in.i17.iotminer.lib.opennlp.OpenNlpCategorizer;
-import de.tum.in.i17.iotminer.lib.weka.WekaCategorizer;
+import de.tum.in.i17.iotminer.lib.opennlp.OpenNlpClassifier;
+import de.tum.in.i17.iotminer.lib.weka.WekaClassifier;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +24,7 @@ public class F1Measure {
     }
 
     public static void main(String[] args) throws Exception {
-        Categorizer categorizer = null;
+        Classifier categorizer = null;
         //F1Measure f1 = new F1Measure("weka");
         F1Measure f1 = new F1Measure("opennlp");
         PerformanceFilesCreator pfc = new PerformanceFilesCreator(0.2);
@@ -35,13 +35,13 @@ public class F1Measure {
 
         if (f1.useLib == "weka") {
             pfc.generateWekaModel();
-            categorizer = new WekaCategorizer("performance/models/model-s1.txt");
+            categorizer = new WekaClassifier("performance/models/model-s1.txt");
         }
 
         if (f1.useLib == "opennlp") {
             pfc.prepareTrainingData();
             new OpenNlpModelTrainer().trainModel("performance/models/onlp-input-step1.txt", "performance/models/model-s1.txt");
-            categorizer = new OpenNlpCategorizer("performance/models/model-s1.txt");
+            categorizer = new OpenNlpClassifier("performance/models/model-s1.txt");
         }
 
         UseCaseIdentifier useCaseIdentifier = new UseCaseIdentifier(categorizer);
