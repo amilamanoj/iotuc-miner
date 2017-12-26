@@ -1,4 +1,4 @@
-package de.tum.in.i17.iotminer.lib.weka;
+package de.tum.in.i17.iotminer.lib.weka.cluster;
 
 import weka.clusterers.Clusterer;
 import weka.clusterers.HierarchicalClusterer;
